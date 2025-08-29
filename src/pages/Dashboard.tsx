@@ -35,7 +35,9 @@ export function Dashboard() {
     expenses: todayExpenses, 
     loading: todayLoading, 
     error: todayError,
-    refresh: refreshToday 
+    refresh: refreshToday,
+    addExpenseOptimistically,
+    removeOptimisticExpense
   } = useExpenseHistory({
     filters: todayFilters,
     limit: 50, // Show all expenses for today
@@ -59,17 +61,26 @@ export function Dashboard() {
     setIsSubmitting(true);
     setFormError(null);
     
+    // Add expense optimistically for immediate UI update
+    const tempId = addExpenseOptimistically(expense);
+    
     try {
       // Submit expense using the service
       const newExpense = await expenseService.createExpense(expense);
       console.log('Expense created successfully:', newExpense);
       
-      // Close form and refresh data
-      setShowExpenseForm(false);
+      // Remove the optimistic expense and refresh to get the real one
+      removeOptimisticExpense(tempId);
       refreshToday();
+      
+      // Close form on successful submission
+      setShowExpenseForm(false);
       
     } catch (error: any) {
       console.error('Failed to submit expense:', error);
+      
+      // Remove the failed optimistic expense
+      removeOptimisticExpense(tempId);
       
       // Re-throw the error so the form can handle it
       throw error;

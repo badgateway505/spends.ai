@@ -1,7 +1,9 @@
 # spends.ai - Project Structure
 
+<!-- CTX_ANCHOR: PROJECT_OVERVIEW -->
 > **Living Document**: This structure evolves as we build the application. Use this to quickly navigate to features, components, and understand the codebase organization.
 
+<!-- CTX_ANCHOR: HIGH_LEVEL_ARCHITECTURE -->
 ## 🏗️ High-Level Architecture
 
 ```
@@ -15,8 +17,10 @@ spends.ai/
 
 ---
 
+<!-- CTX_ANCHOR: FRONTEND_STRUCTURE -->
 ## 📁 Frontend Structure (/src)
 
+<!-- CTX_ANCHOR: CORE_APPLICATION -->
 ### 🎯 Core Application
 
 ```
@@ -26,7 +30,7 @@ src/
 │   ├── router.tsx                   # Route configuration
 │   └── providers.tsx                # Context providers
 │
-├── 🔐 auth/                         # Authentication system
+├── 🔐 auth/                         # Authentication system <!-- CTX_ANCHOR: AUTH_MODULE -->
 │   ├── components/                  # Auth UI components
 │   │   ├── LoginForm.tsx
 │   │   ├── SignupForm.tsx
@@ -39,7 +43,7 @@ src/
 │   └── types/                       # Auth type definitions
 │       └── auth.types.ts
 │
-├── 💰 expenses/                     # Core expense functionality
+├── 💰 expenses/                     # Core expense functionality <!-- CTX_ANCHOR: EXPENSES_MODULE -->
 │   ├── components/                  # Expense-related components
 │   │   ├── capture/                 # Expense capture components
 │   │   │   ├── ExpenseForm.tsx      # Manual text entry
@@ -72,7 +76,7 @@ src/
 │       ├── classification.types.ts
 │       └── voice.types.ts
 │
-├── 🏷️ categories/                   # Groups & Tags management
+├── 🏷️ categories/                   # Groups & Tags management <!-- CTX_ANCHOR: CATEGORIES_MODULE -->
 │   ├── components/
 │   │   ├── GroupManager.tsx         # Group CRUD interface
 │   │   ├── TagManager.tsx           # Tag CRUD interface
@@ -90,7 +94,7 @@ src/
 │   └── types/
 │       └── category.types.ts
 │
-├── 📊 analytics/                    # Analytics & visualization
+├── 📊 analytics/                    # Analytics & visualization <!-- CTX_ANCHOR: ANALYTICS_MODULE -->
 │   ├── components/
 │   │   ├── AnalyticsDashboard.tsx   # Main analytics page
 │   │   ├── charts/                  # Chart components
@@ -116,7 +120,7 @@ src/
 │   └── types/
 │       └── analytics.types.ts
 │
-├── 💱 currency/                     # Currency & FX management
+├── 💱 currency/                     # Currency & FX management <!-- CTX_ANCHOR: CURRENCY_MODULE -->
 │   ├── components/
 │   │   ├── CurrencyConverter.tsx    # Currency conversion display
 │   │   ├── FXRateManager.tsx        # FX rate management
@@ -135,7 +139,7 @@ src/
 │   └── types/
 │       └── currency.types.ts
 │
-├── 🎤 voice/                        # Voice & STT functionality
+├── 🎤 voice/                        # Voice & STT functionality <!-- CTX_ANCHOR: VOICE_MODULE -->
 │   ├── components/
 │   │   ├── VoiceTrigger.tsx         # Mic button component
 │   │   ├── VoiceVisualizer.tsx      # Audio visualization
@@ -153,7 +157,7 @@ src/
 │   └── types/
 │       └── voice.types.ts
 │
-├── 🎨 ui/                           # UI Components & Design System
+├── 🎨 ui/                           # UI Components & Design System <!-- CTX_ANCHOR: UI_MODULE -->
 │   ├── components/                  # Reusable UI components
 │   │   ├── layout/                  # Layout components
 │   │   │   ├── Header.tsx
@@ -191,7 +195,7 @@ src/
 │       ├── cn.ts                    # Class name utilities
 │       └── formatters.ts            # Display formatters
 │
-├── 🎭 three/                        # React Three Fiber & 3D
+├── 🎭 three/                        # React Three Fiber & 3D <!-- CTX_ANCHOR: THREE_MODULE -->
 │   ├── components/
 │   │   ├── Scene.tsx                # Main 3D scene
 │   │   ├── Background.tsx           # 3D background
@@ -204,7 +208,7 @@ src/
 │   └── types/
 │       └── three.types.ts
 │
-├── 📱 pwa/                          # PWA & Offline functionality
+├── 📱 pwa/                          # PWA & Offline functionality <!-- CTX_ANCHOR: PWA_MODULE -->
 │   ├── components/
 │   │   ├── InstallPrompt.tsx        # PWA install prompt
 │   │   ├── OfflineIndicator.tsx     # Network status
@@ -220,7 +224,7 @@ src/
 │   └── utils/
 │       └── offlineQueue.ts          # Offline queue utilities
 │
-├── 📄 pages/                        # Page components
+├── 📄 pages/                        # Page components <!-- CTX_ANCHOR: PAGES_MODULE -->
 │   ├── Dashboard.tsx                # Main dashboard
 │   ├── History.tsx                  # Expense history
 │   ├── Analytics.tsx                # Analytics page
@@ -228,26 +232,26 @@ src/
 │   ├── Login.tsx                    # Login page
 │   └── NotFound.tsx                 # 404 page
 │
-├── 🔧 utils/                        # Global utilities
+├── 🔧 utils/                        # Global utilities <!-- CTX_ANCHOR: UTILS_MODULE -->
 │   ├── api.ts                       # API client configuration
 │   ├── constants.ts                 # App constants
 │   ├── helpers.ts                   # General helpers
 │   ├── validators.ts                # Validation functions
 │   └── storage.ts                   # Local storage utilities
 │
-├── 🏪 store/                        # Global state management
+├── 🏪 store/                        # Global state management <!-- CTX_ANCHOR: STORE_MODULE -->
 │   ├── index.ts                     # Store setup
 │   ├── appStore.ts                  # Global app state
 │   └── middleware/                  # Zustand middleware
 │       ├── persistence.ts           # State persistence
 │       └── devtools.ts              # Development tools
 │
-├── 📝 types/                        # Global TypeScript types
+├── 📝 types/                        # Global TypeScript types <!-- CTX_ANCHOR: TYPES_MODULE -->
 │   ├── global.types.ts              # Global type definitions
 │   ├── api.types.ts                 # API response types
 │   └── common.types.ts              # Common shared types
 │
-└── 🧪 __tests__/                    # Test files
+└── 🧪 __tests__/                    # Test files <!-- CTX_ANCHOR: TESTS_MODULE -->
     ├── components/                  # Component tests
     ├── hooks/                       # Hook tests
     ├── services/                    # Service tests
@@ -257,8 +261,10 @@ src/
 
 ---
 
+<!-- CTX_ANCHOR: BACKEND_STRUCTURE -->
 ## 🔧 Backend Structure (/supabase)
 
+<!-- CTX_ANCHOR: DATABASE_SCHEMA -->
 ### 📊 Database Schema
 
 ```
@@ -281,11 +287,12 @@ supabase/
     └── database.types.ts            # Auto-generated from schema
 ```
 
+<!-- CTX_ANCHOR: EDGE_FUNCTIONS -->
 ### 🤖 Edge Functions
 
 ```
 supabase/functions/
-├── classify/                        # AI expense classification
+├── classify/                        # AI expense classification <!-- CTX_ANCHOR: CLASSIFY_FUNCTION -->
 │   ├── index.ts                     # Main classification endpoint
 │   ├── providers/                   # AI provider abstractions
 │   │   ├── openrouter.ts           # OpenRouter integration
@@ -297,7 +304,7 @@ supabase/functions/
 │       ├── confidence.ts            # Confidence scoring
 │       └── validation.ts            # Response validation
 │
-├── fx/                              # Foreign exchange services
+├── fx/                              # Foreign exchange services <!-- CTX_ANCHOR: FX_FUNCTION -->
 │   ├── snapshot/                    # Daily FX snapshot
 │   │   └── index.ts
 │   ├── rates/                       # FX rate management
@@ -306,7 +313,7 @@ supabase/functions/
 │       ├── exchangerate-host.ts     # External FX API
 │       └── manual-override.ts       # Manual rate override
 │
-├── analytics/                       # Analytics aggregation
+├── analytics/                       # Analytics aggregation <!-- CTX_ANCHOR: ANALYTICS_FUNCTION -->
 │   ├── summary/                     # Summary statistics
 │   │   └── index.ts
 │   ├── trends/                      # Trend analysis
@@ -314,20 +321,20 @@ supabase/functions/
 │   └── insights/                    # Spending insights
 │       └── index.ts
 │
-├── stt/                             # Speech-to-text fallback
+├── stt/                             # Speech-to-text fallback <!-- CTX_ANCHOR: STT_FUNCTION -->
 │   ├── index.ts                     # Main STT endpoint
 │   ├── whisper/                     # Whisper integration
 │   │   └── whisper-client.ts
 │   └── utils/
 │       └── audio-processing.ts
 │
-├── sync/                            # Background sync & cron
+├── sync/                            # Background sync & cron <!-- CTX_ANCHOR: SYNC_FUNCTION -->
 │   ├── fx-daily/                    # Daily FX rate fetch
 │   │   └── index.ts
 │   └── cleanup/                     # Data cleanup tasks
 │       └── index.ts
 │
-└── _shared/                         # Shared function utilities
+└── _shared/                         # Shared function utilities <!-- CTX_ANCHOR: SHARED_FUNCTION_UTILS -->
     ├── supabase.ts                  # Supabase client
     ├── cors.ts                      # CORS handling
     ├── auth.ts                      # Authentication utilities
@@ -337,25 +344,27 @@ supabase/functions/
 
 ---
 
+<!-- CTX_ANCHOR: DATABASE_TABLES -->
 ## 🗄️ Database Tables & Relationships
 
+<!-- CTX_ANCHOR: CORE_TABLES -->
 ### Core Tables
 
 ```sql
--- Users (handled by Supabase Auth)
+-- Users (handled by Supabase Auth) <!-- CTX_ANCHOR: USERS_TABLE -->
 auth.users
 ├── id (uuid, PK)
 ├── email
 └── created_at
 
--- User Settings
+-- User Settings <!-- CTX_ANCHOR: USER_SETTINGS_TABLE -->
 user_settings
 ├── user_id (uuid, FK → auth.users.id)
 ├── main_currency (text, 'THB'|'USD')
 ├── include_archived_analytics (boolean)
 └── updated_at
 
--- Expense Groups
+-- Expense Groups <!-- CTX_ANCHOR: GROUPS_TABLE -->
 groups
 ├── id (uuid, PK)
 ├── user_id (uuid, FK → auth.users.id)
@@ -366,7 +375,7 @@ groups
 ├── created_at (timestamptz)
 └── updated_at (timestamptz)
 
--- Expense Tags
+-- Expense Tags <!-- CTX_ANCHOR: TAGS_TABLE -->
 tags
 ├── id (uuid, PK)
 ├── user_id (uuid, FK → auth.users.id)
@@ -375,7 +384,7 @@ tags
 ├── created_at (timestamptz)
 └── updated_at (timestamptz)
 
--- FX Rates (daily snapshots)
+-- FX Rates (daily snapshots) <!-- CTX_ANCHOR: FX_RATES_TABLE -->
 fx_rates
 ├── rate_date (date, PK)
 ├── usd_per_thb (numeric)
@@ -383,7 +392,7 @@ fx_rates
 ├── manual (boolean)
 └── fetched_at (timestamptz)
 
--- Expenses/Spends
+-- Expenses/Spends <!-- CTX_ANCHOR: SPENDS_TABLE -->
 spends
 ├── id (uuid, PK)
 ├── user_id (uuid, FK → auth.users.id)
@@ -399,7 +408,7 @@ spends
 ├── archived (boolean)
 └── archived_at (timestamptz)
 
--- AI Model Tracking
+-- AI Model Tracking <!-- CTX_ANCHOR: MODEL_RUNS_TABLE -->
 model_runs
 ├── id (uuid, PK)
 ├── user_id (uuid, FK → auth.users.id)
@@ -413,8 +422,10 @@ model_runs
 
 ---
 
+<!-- CTX_ANCHOR: INFRASTRUCTURE -->
 ## 🚀 Infrastructure & Deployment
 
+<!-- CTX_ANCHOR: GITHUB_ACTIONS -->
 ### GitHub Actions (.github/workflows/)
 
 ```
@@ -426,6 +437,7 @@ model_runs
 └── security-scan.yml               # Security scanning
 ```
 
+<!-- CTX_ANCHOR: CONFIG_FILES -->
 ### Configuration Files
 
 ```
@@ -445,8 +457,10 @@ model_runs
 
 ---
 
+<!-- CTX_ANCHOR: FEATURE_MAPPING -->
 ## 🎯 Feature Mapping by Development Phase
 
+<!-- CTX_ANCHOR: PHASE_0_FOUNDATION -->
 ### Phase 0: Foundation
 
 - **Auth System**: `/src/auth/`
@@ -454,6 +468,7 @@ model_runs
 - **Basic UI Framework**: `/src/ui/components/layout`
 - **Project Setup**: Root config files
 
+<!-- CTX_ANCHOR: PHASE_1_CORE_CAPTURE -->
 ### Phase 1: Core Capture
 
 - **Text Entry**: `/src/expenses/components/capture/ExpenseForm.tsx`
@@ -462,12 +477,14 @@ model_runs
 - **Review Flow**: `/src/expenses/components/capture/ReviewCard.tsx`
 - **Currency Foundation**: `/src/currency/`
 
+<!-- CTX_ANCHOR: PHASE_2_VOICE -->
 ### Phase 2: Voice Integration
 
 - **Voice Recording**: `/src/voice/components/VoiceCapture.tsx`
 - **Voice Overlay**: `/src/expenses/components/capture/VoiceOverlay.tsx`
 - **STT Services**: `/src/voice/services/` + `/supabase/functions/stt/`
 
+<!-- CTX_ANCHOR: PHASE_3_DATA_MANAGEMENT -->
 ### Phase 3: Data Management
 
 - **Main Dashboard**: `/src/pages/Dashboard.tsx`
@@ -475,12 +492,14 @@ model_runs
 - **Filtering System**: `/src/expenses/hooks/useExpenseHistory.ts`
 - **Archive System**: `/src/categories/hooks/useArchive.ts`
 
+<!-- CTX_ANCHOR: PHASE_4_ANALYTICS -->
 ### Phase 4: Analytics
 
 - **Analytics Dashboard**: `/src/analytics/components/AnalyticsDashboard.tsx`
 - **Charts**: `/src/analytics/components/charts/`
 - **Analytics Backend**: `/supabase/functions/analytics/`
 
+<!-- CTX_ANCHOR: PHASE_5_POLISH -->
 ### Phase 5: Polish & Performance
 
 - **PWA Features**: `/src/pwa/`
@@ -490,8 +509,10 @@ model_runs
 
 ---
 
+<!-- CTX_ANCHOR: NAVIGATION_GUIDE -->
 ## 🔍 Quick Navigation Guide
 
+<!-- CTX_ANCHOR: DEBUGGING_GUIDE -->
 ### 🐛 Finding Bugs/Issues
 
 1. **UI Issues**: Check `/src/ui/components/` and `/src/pages/`
@@ -499,6 +520,7 @@ model_runs
 3. **State Issues**: Check `/src/*/store/` and `/src/*/hooks/`
 4. **Database Issues**: Check `/supabase/migrations/`
 
+<!-- CTX_ANCHOR: FEATURE_DEVELOPMENT_GUIDE -->
 ### ✨ Adding New Features
 
 1. **New Page**: Add to `/src/pages/` and update `/src/app/router.tsx`
@@ -506,6 +528,7 @@ model_runs
 3. **New API**: Add to `/supabase/functions/` and update `/src/*/services/`
 4. **New Database Table**: Add migration to `/supabase/migrations/`
 
+<!-- CTX_ANCHOR: CONFIG_CHANGES_GUIDE -->
 ### 🔧 Configuration Changes
 
 1. **Environment Variables**: Update `.env.example` and deployment configs
@@ -515,6 +538,7 @@ model_runs
 
 ---
 
+<!-- CTX_ANCHOR: MAINTENANCE_CHECKLIST -->
 ## 📋 Maintenance Checklist
 
 - [ ] Update this structure when adding new features
