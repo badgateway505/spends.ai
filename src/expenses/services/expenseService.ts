@@ -2,6 +2,8 @@ import { supabase } from '../../lib/supabase';
 import { isDevelopment } from '../../utils/env';
 import type { NewExpenseForm, Expense } from '../types/expense.types';
 import type { PostgrestError } from '@supabase/supabase-js';
+import { classificationService, type ClassificationResult } from './classificationService';
+import { groupService } from '../../categories/services/groupService';
 
 // Use the proper database type for expenses
 type ExpenseRow = Expense;
@@ -14,6 +16,16 @@ export interface CreateExpenseRequest {
   group_id?: string;
   tag_id?: string;
   user_local_datetime?: string;
+}
+
+export interface CreateExpenseWithClassificationRequest extends CreateExpenseRequest {
+  // Flag to enable AI classification
+  useAI?: boolean;
+}
+
+export interface ExpenseCreationResult {
+  expense: ExpenseRow;
+  classification?: ClassificationResult;
 }
 
 
@@ -85,7 +97,93 @@ class ExpenseServiceClass {
   }
 
   /**
-   * Create a new expense
+   * Create a new expense with optional AI classification
+   */
+  async createExpenseWithAI(formData: NewExpenseForm & { useAI?: boolean }): Promise<ExpenseCreationResult> {
+    try {
+      console.log('Creating expense with AI classification:', formData);
+      
+      let classification: ClassificationResult | undefined;
+      let enhancedFormData = { ...formData };
+
+      // Try AI classification if requested and not disabled
+      if (formData.useAI !== false) {
+        try {
+          // Ensure user has default groups if they don't have any
+          const hasGroups = await groupService.hasGroups();
+          if (!hasGroups) {
+            console.log('Creating default groups for new user...');
+            await groupService.createDefaultGroups();
+          }
+
+          // Create classification text from form data
+          const classificationText = `${formData.item}${formData.merchant ? ` at ${formData.merchant}` : ''} ${formData.amount} ${formData.currency}`;
+          
+          classification = await classificationService.classifyExpense(classificationText);
+          
+          // Apply AI suggestions if they improve the expense data
+          if (classification) {
+            console.log('AI classification result:', classification);
+            
+            // Use AI-suggested item if it's more descriptive
+            if (classification.item && classification.item.length > formData.item.length) {
+              enhancedFormData.item = classification.item;
+            }
+            
+            // Use AI-suggested merchant if not provided
+            if (!formData.merchant && classification.merchant) {
+              enhancedFormData.merchant = classification.merchant;
+            }
+            
+            // Use AI-suggested group if not provided
+            if (!formData.group_id && classification.group?.id) {
+              enhancedFormData.group_id = classification.group.id;
+            }
+            
+            // Use AI-suggested tag if not provided
+            if (!formData.tag_id && classification.tag?.id) {
+              enhancedFormData.tag_id = classification.tag.id;
+            }
+            
+            // Use AI-suggested amount if not provided or if AI confidence is high
+            if (classification.amount && (!formData.amount || classification.confidence > 0.9)) {
+              enhancedFormData.amount = classification.amount.toString();
+            }
+            
+            // Use AI-suggested currency if not provided or if AI confidence is high
+            if (classification.currency && (!formData.currency || classification.confidence > 0.9)) {
+              enhancedFormData.currency = classification.currency;
+            }
+          }
+        } catch (classificationError) {
+          console.warn('AI classification failed, proceeding without:', classificationError);
+          // Continue with original form data if classification fails
+        }
+      }
+
+      // Create the expense with enhanced data
+      const expense = await this.createExpense(enhancedFormData);
+      
+      return {
+        expense,
+        classification
+      };
+
+    } catch (error) {
+      if (error instanceof ExpenseServiceError) {
+        throw error;
+      }
+      
+      console.error('Unexpected error creating expense with AI:', error);
+      throw new ExpenseServiceError(
+        'UNKNOWN_ERROR',
+        'An unexpected error occurred while creating the expense'
+      );
+    }
+  }
+
+  /**
+   * Create a new expense (basic version without AI)
    */
   async createExpense(formData: NewExpenseForm): Promise<ExpenseRow> {
     try {

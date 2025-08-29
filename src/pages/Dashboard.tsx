@@ -3,16 +3,23 @@ import { ExpenseList } from '../expenses/components/management/ExpenseList';
 import { useExpenseHistory } from '../expenses/hooks/useExpenseHistory';
 import { ThemeToggle } from '../ui/components/layout/ThemeToggle';
 import { ExpenseForm, type FormError } from '../expenses/components/capture/ExpenseForm';
+import { ExpenseReviewCard } from '../expenses/components/capture/ExpenseReviewCard';
 import { ToastContainer } from '../ui/components/feedback/Toast';
 import { useToast } from '../ui/hooks/useToast';
 import { expenseService } from '../expenses/services/expenseService';
 import type { NewExpenseForm } from '../expenses/types/expense.types';
+import type { ClassificationResult } from '../expenses/services/classificationService';
 import { useAuth } from '../auth/hooks/useAuth';
 
+type ExpenseFlowStep = 'form' | 'review' | 'none';
+
 export function Dashboard() {
-  const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [expenseFlowStep, setExpenseFlowStep] = useState<ExpenseFlowStep>('none');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isClassifying, setIsClassifying] = useState(false);
   const [, setFormError] = useState<FormError | null>(null);
+  const [pendingExpenseData, setPendingExpenseData] = useState<NewExpenseForm | null>(null);
+  const [classificationResult, setClassificationResult] = useState<ClassificationResult | null>(null);
   
   const { user, signOut } = useAuth();
   const toast = useToast();
@@ -60,29 +67,60 @@ export function Dashboard() {
     }).format(amount);
   };
 
-  const handleExpenseSubmit = async (expense: NewExpenseForm) => {
-    setIsSubmitting(true);
+  const handleExpenseFormSubmit = async (expense: NewExpenseForm) => {
+    setIsClassifying(true);
     setFormError(null);
-    
-    // Add expense optimistically for immediate UI update
-    const tempId = addExpenseOptimistically(expense);
+    setPendingExpenseData(expense);
     
     try {
-      // Submit expense using the service
-      const newExpense = await expenseService.createExpense(expense);
+      // Try AI classification first
+      const { classificationService } = await import('../expenses/services/classificationService');
+      const classificationText = `${expense.item}${expense.merchant ? ` at ${expense.merchant}` : ''} ${expense.amount} ${expense.currency}`;
+      
+      const classification = await classificationService.classifyExpense(classificationText);
+      setClassificationResult(classification);
+      setExpenseFlowStep('review');
+      
+    } catch (error: any) {
+      console.warn('AI classification failed, proceeding without review:', error);
+      
+      // If classification fails, proceed directly to saving
+      await handleFinalExpenseSubmit(expense);
+    } finally {
+      setIsClassifying(false);
+    }
+  };
+
+  const handleFinalExpenseSubmit = async (finalExpenseData: NewExpenseForm) => {
+    setIsSubmitting(true);
+    
+    // Add expense optimistically for immediate UI update
+    const tempId = addExpenseOptimistically(finalExpenseData);
+    
+    try {
+      // Submit expense using the basic service (AI already applied)
+      const newExpense = await expenseService.createExpense(finalExpenseData);
       console.log('Expense created successfully:', newExpense);
       
       // Remove the optimistic expense and refresh to get the real one
       removeOptimisticExpense(tempId);
       refreshToday();
       
-      // Close form on successful submission
-      setShowExpenseForm(false);
+      // Reset flow
+      setExpenseFlowStep('none');
+      setPendingExpenseData(null);
+      setClassificationResult(null);
       
-      // Show success toast
+      // Show success toast with AI classification info
+      let successMessage = `${newExpense.item} - ${newExpense.currency} ${(newExpense.amount / 100).toFixed(2)}`;
+      
+      if (classificationResult && classificationResult.group) {
+        successMessage += ` (${classificationResult.group.name})`;
+      }
+      
       toast.success(
-        'Expense Added!',
-        `${expense.item} - ${expense.currency} ${expense.amount}`
+        classificationResult ? 'Expense Added with AI!' : 'Expense Added!',
+        successMessage
       );
       
     } catch (error: any) {
@@ -125,6 +163,22 @@ export function Dashboard() {
       setIsSubmitting(false);
     }
   };
+
+  const handleReviewAccept = (finalData: NewExpenseForm) => {
+    handleFinalExpenseSubmit(finalData);
+  };
+
+  const handleReviewReject = () => {
+    if (pendingExpenseData) {
+      handleFinalExpenseSubmit(pendingExpenseData);
+    }
+  };
+
+  const handleReviewModify = (modifiedData: NewExpenseForm) => {
+    setPendingExpenseData(modifiedData);
+  };
+
+
 
   const handleFormError = (error: FormError) => {
     console.log('Form error:', error);
@@ -223,15 +277,19 @@ export function Dashboard() {
           {/* Quick Actions */}
           <div className="flex gap-3 mb-6">
             <button 
-              onClick={() => setShowExpenseForm(!showExpenseForm)}
-              className="btn-primary flex-1 flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-105"
+              onClick={() => setExpenseFlowStep(expenseFlowStep === 'form' ? 'none' : 'form')}
+              disabled={isClassifying || isSubmitting}
+              className="btn-primary flex-1 flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              {showExpenseForm ? 'Cancel' : 'Add Expense'}
+              {expenseFlowStep === 'form' ? 'Cancel' : 'Add Expense'}
             </button>
-            <button className="btn-secondary flex-1 flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-105">
+            <button 
+              disabled={isClassifying || isSubmitting}
+              className="btn-secondary flex-1 flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
@@ -240,14 +298,46 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Expense Form - appears when showExpenseForm is true */}
-        {showExpenseForm && (
+        {/* Expense Flow - Form Step */}
+        {expenseFlowStep === 'form' && (
           <div className="animate-slide-up mb-6">
             <ExpenseForm 
-              onSubmit={handleExpenseSubmit}
-              loading={isSubmitting}
+              onSubmit={handleExpenseFormSubmit}
+              loading={isClassifying}
               onError={handleFormError}
             />
+          </div>
+        )}
+
+        {/* Expense Flow - Review Step */}
+        {expenseFlowStep === 'review' && pendingExpenseData && classificationResult && (
+          <div className="animate-slide-up mb-6">
+            <ExpenseReviewCard
+              originalData={pendingExpenseData}
+              classification={classificationResult}
+              onAccept={handleReviewAccept}
+              onReject={handleReviewReject}
+              onModify={handleReviewModify}
+              loading={isSubmitting}
+            />
+          </div>
+        )}
+
+        {/* Processing Indicator */}
+        {isClassifying && (
+          <div className="animate-slide-up mb-6">
+            <div className="card p-6 border-2 border-primary-200 dark:border-primary-800">
+              <div className="flex items-center gap-3">
+                <svg className="animate-spin h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Analyzing with AI...</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Categorizing your expense and extracting details</p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -301,8 +391,11 @@ export function Dashboard() {
           <div>User: {user?.email || 'Not authenticated'}</div>
           <div>User ID: {user?.id?.substring(0, 8) || 'N/A'}...</div>
           <div>Expenses: {todayExpenses.length}</div>
+          <div>Flow Step: {expenseFlowStep}</div>
           <div>Loading: {todayLoading ? '🔄' : '✅'}</div>
+          <div>Classifying: {isClassifying ? '🧠' : '✅'}</div>
           <div>Submitting: {isSubmitting ? '⏳' : '✅'}</div>
+          <div>Has Classification: {classificationResult ? '🤖' : '❌'}</div>
           {todayError && (
             <div className="text-red-400 mt-1">
               Error: {String(todayError).substring(0, 40)}...
