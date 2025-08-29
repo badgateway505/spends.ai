@@ -47,22 +47,22 @@ Ran tool
 **Dependencies:** None
 **Subtasks:**
 
-- 0.1.1 Initialize React + Vite project with TypeScript
-- 0.1.2 Configure ESLint, Prettier, and development tools
-- 0.1.3 Set up folder structure following best practices
-- 0.1.4 Configure Git repository and basic CI/CD with GitHub Actions
-- 0.1.5 Set up environment configuration management
+- ✅ 0.1.1 Initialize React + Vite project with TypeScript
+- ✅ 0.1.2 Configure ESLint, Prettier, and development tools
+- ✅ 0.1.3 Set up folder structure following best practices
+- ✅ 0.1.4 Configure Git repository and basic CI/CD with GitHub Actions
+- ✅ 0.1.5 Set up environment configuration management
 
 #### **0.2 Database & Backend Infrastructure**
 
 **Dependencies:** 0.1 (Project Setup)
 **Subtasks:**
 
-- 0.2.1 Create Supabase project and configure database
-- 0.2.2 Design and implement core database schema (users, spends, groups, tags, fx_rates)
-- 0.2.3 Set up Row Level Security (RLS) policies
-- 0.2.4 Create database migrations and seed scripts
-- 0.2.5 Set up Supabase Edge Functions structure
+- ✅ 0.2.1 Create Supabase project and configure database
+- ✅ 0.2.2 Design and implement core database schema (users, spends, groups, tags, fx_rates)
+- ✅ 0.2.3 Set up Row Level Security (RLS) policies
+- ✅ 0.2.4 Create database migrations and seed scripts
+- ✅ 0.2.5 Set up Supabase Edge Functions structure
 
 #### **0.3 Authentication System**
 
