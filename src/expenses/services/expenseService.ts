@@ -36,11 +36,21 @@ class ExpenseServiceClass {
    */
   async createExpense(formData: NewExpenseForm): Promise<ExpenseRow> {
     try {
-      // Get current user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Get current user or mock user for testing
+      let userId: string;
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (authError || !user) {
-        throw new ExpenseServiceError('AUTH_ERROR', 'User not authenticated');
+      if (user) {
+        userId = user.id;
+      } else {
+        // Check for mock admin user
+        const mockUserData = localStorage.getItem('mock-admin-user');
+        if (mockUserData) {
+          const mockUser = JSON.parse(mockUserData);
+          userId = mockUser.id;
+        } else {
+          throw new ExpenseServiceError('AUTH_ERROR', 'User not authenticated');
+        }
       }
 
       // Convert form data to database format
@@ -57,7 +67,7 @@ class ExpenseServiceClass {
       const fxRateDate = today.toISOString().split('T')[0]; // YYYY-MM-DD format
 
       const expenseData = {
-        user_id: user.id,
+        user_id: userId,
         item: formData.item.trim(),
         amount: amountInteger,
         currency: formData.currency,

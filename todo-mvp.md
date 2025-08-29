@@ -35,8 +35,8 @@
 - ✅ MVP-1.2.1 Create simple expense entry form (item, amount, currency)
 - ✅ MVP-1.2.2 Implement form validation and submission
 - ✅ MVP-1.2.3 Connect to Supabase database (basic CRUD)
-- MVP-1.2.4 Show new expense in list immediately
-- MVP-1.2.5 Add loading states and basic error handling
+- ✅ MVP-1.2.4 Show new expense in list immediately
+- ✅ MVP-1.2.5 Add loading states and basic error handling
 
 #### **MVP-1.3: AI Classification Integration**
 **Goal:** Expenses are automatically categorized

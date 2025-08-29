@@ -43,6 +43,11 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
         <p className="text-gray-600 dark:text-gray-400">
           {isSignUp ? 'Create your account to start tracking expenses' : 'Welcome back! Please sign in to continue'}
         </p>
+        {!isSignUp && (
+          <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded text-xs">
+            <strong>Testing:</strong> Use admin/admin to login with test account
+          </div>
+        )}
       </div>
 
       {error && (

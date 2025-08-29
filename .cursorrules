@@ -28,3 +28,11 @@ No praise, no apologies, no conversational fluff. Only return actionable, concis
 Rule 7:
 When in Ask mode, you may provide more context or explanations, but keep responses brief and focused.
 Avoid compliments, fillers, or unnecessary justifications.
+
+Rule 8:
+Terminal Process Management:
+- Always use timeout commands for potentially long-running processes (e.g., `timeout 30s npm test`)
+- Prefer non-interactive commands that exit cleanly
+- When running development servers or watch processes, immediately inform the user they'll need to manually terminate with Ctrl+C
+- Before running any command that might hang, warn the user about potential manual intervention needed
+- If unable to terminate a process programmatically, instruct the user to manually press Ctrl+C in the terminal

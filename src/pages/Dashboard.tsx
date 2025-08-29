@@ -3,6 +3,8 @@ import { ExpenseList } from '../expenses/components/management/ExpenseList';
 import { useExpenseHistory } from '../expenses/hooks/useExpenseHistory';
 import { ThemeToggle } from '../ui/components/layout/ThemeToggle';
 import { ExpenseForm, type FormError } from '../expenses/components/capture/ExpenseForm';
+import { ToastContainer } from '../ui/components/feedback/Toast';
+import { useToast } from '../ui/hooks/useToast';
 import { expenseService } from '../expenses/services/expenseService';
 import type { NewExpenseForm } from '../expenses/types/expense.types';
 import { useAuth } from '../auth/hooks/useAuth';
@@ -13,6 +15,7 @@ export function Dashboard() {
   const [, setFormError] = useState<FormError | null>(null);
   
   const { user, signOut } = useAuth();
+  const toast = useToast();
 
   // Get today's date range for filtering
   const todayFilters = useMemo(() => {
@@ -76,11 +79,23 @@ export function Dashboard() {
       // Close form on successful submission
       setShowExpenseForm(false);
       
+      // Show success toast
+      toast.success(
+        'Expense Added!',
+        `${expense.item} - ${expense.currency} ${expense.amount}`
+      );
+      
     } catch (error: any) {
       console.error('Failed to submit expense:', error);
       
       // Remove the failed optimistic expense
       removeOptimisticExpense(tempId);
+      
+      // Show error toast
+      toast.error(
+        'Failed to Add Expense',
+        error.message || 'Please try again'
+      );
       
       // Re-throw the error so the form can handle it
       throw error;
@@ -232,6 +247,9 @@ export function Dashboard() {
           </p>
         </footer>
       </div>
+      
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { ExpenseItem } from './ExpenseItem';
+import { ExpenseItemSkeleton } from '../../../ui/components/feedback/LoadingSkeleton';
 import type { ExpenseWithConversions } from '../../types/expense.types';
 
 interface ExpenseListProps {
@@ -20,22 +21,7 @@ export function ExpenseList({
 }: ExpenseListProps) {
   
   if (loading) {
-    return (
-      <div className="space-y-3">
-        {/* Loading skeleton */}
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="card p-4 animate-pulse">
-            <div className="flex justify-between">
-              <div className="flex-1">
-                <div className="skeleton h-4 w-3/4 mb-2"></div>
-                <div className="skeleton h-3 w-1/2"></div>
-              </div>
-              <div className="skeleton w-20 h-4"></div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return <ExpenseItemSkeleton count={3} />;
   }
 
   if (error) {

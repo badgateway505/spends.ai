@@ -3,6 +3,33 @@
 <!-- CTX_ANCHOR: PROJECT_OVERVIEW -->
 > **Living Document**: This structure evolves as we build the application. Use this to quickly navigate to features, components, and understand the codebase organization.
 
+<!-- CTX_ANCHOR: TABLE_OF_CONTENTS -->
+## 📋 CTX Navigation Index
+
+**Frontend Structure:**
+- [Core Application](#core-application) - `CTX_ANCHOR: CORE_APPLICATION`
+- [Auth Module](#auth-module) - `CTX_ANCHOR: AUTH_MODULE`
+- [Expenses Module](#expenses-module) - `CTX_ANCHOR: EXPENSES_MODULE`
+- [Categories Module](#categories-module) - `CTX_ANCHOR: CATEGORIES_MODULE`
+- [Analytics Module](#analytics-module) - `CTX_ANCHOR: ANALYTICS_MODULE`
+- [Currency Module](#currency-module) - `CTX_ANCHOR: CURRENCY_MODULE`
+- [Voice Module](#voice-module) - `CTX_ANCHOR: VOICE_MODULE`
+- [UI Module](#ui-module) - `CTX_ANCHOR: UI_MODULE`
+- [Three Module](#three-module) - `CTX_ANCHOR: THREE_MODULE`
+- [PWA Module](#pwa-module) - `CTX_ANCHOR: PWA_MODULE`
+
+**Backend Structure:**
+- [Database Schema](#database-schema) - `CTX_ANCHOR: DATABASE_SCHEMA`
+- [Edge Functions](#edge-functions) - `CTX_ANCHOR: EDGE_FUNCTIONS`
+- [Database Tables](#database-tables) - `CTX_ANCHOR: DATABASE_TABLES`
+
+**Development Guides:**
+- [Feature Mapping](#feature-mapping) - `CTX_ANCHOR: FEATURE_MAPPING`
+- [Navigation Guide](#navigation-guide) - `CTX_ANCHOR: NAVIGATION_GUIDE`
+- [Debugging Guide](#debugging-guide) - `CTX_ANCHOR: DEBUGGING_GUIDE`
+
+---
+
 <!-- CTX_ANCHOR: HIGH_LEVEL_ARCHITECTURE -->
 ## 🏗️ High-Level Architecture
 
@@ -550,5 +577,31 @@ model_runs
 
 ---
 
-_Last Updated: Initial Version - [Date]_
+<!-- CTX_ANCHOR: LLM_NAVIGATION_GUIDE -->
+## 🤖 LLM Navigation Guide
+
+This document uses CTX anchors (HTML comments) to help AI assistants navigate the codebase structure efficiently. 
+
+### How to Use CTX Anchors:
+
+**For LLMs/AI Assistants:**
+1. Search for `CTX_ANCHOR:` followed by the topic you need
+2. Use anchors to jump to relevant sections without reading the entire document
+3. Reference anchors when explaining code location to users
+
+**Common CTX Anchor Patterns:**
+- `CTX_ANCHOR: [MODULE]_MODULE` - Feature modules (e.g., `AUTH_MODULE`, `EXPENSES_MODULE`)
+- `CTX_ANCHOR: [FUNCTION]_FUNCTION` - Backend functions (e.g., `CLASSIFY_FUNCTION`, `FX_FUNCTION`)
+- `CTX_ANCHOR: [TABLE]_TABLE` - Database tables (e.g., `SPENDS_TABLE`, `USERS_TABLE`)
+- `CTX_ANCHOR: PHASE_[N]_[NAME]` - Development phases (e.g., `PHASE_1_CORE_CAPTURE`)
+
+**Quick Reference Commands:**
+- Find auth code: Search `CTX_ANCHOR: AUTH_MODULE`
+- Find expense logic: Search `CTX_ANCHOR: EXPENSES_MODULE`
+- Find database schema: Search `CTX_ANCHOR: DATABASE_SCHEMA`
+- Find debugging guide: Search `CTX_ANCHOR: DEBUGGING_GUIDE`
+
+---
+
+_Last Updated: Initial Version with CTX Anchors - [Date]_
 _Next Review: After each major feature addition_

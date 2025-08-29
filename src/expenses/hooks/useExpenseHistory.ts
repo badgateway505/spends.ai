@@ -34,18 +34,28 @@ export function useExpenseHistory({
       setLoading(true);
       setError(null);
 
-      // Get current user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Get current user or mock user for testing
+      let userId: string;
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (authError || !user) {
-        throw new Error('User not authenticated');
+      if (user) {
+        userId = user.id;
+      } else {
+        // Check for mock admin user
+        const mockUserData = localStorage.getItem('mock-admin-user');
+        if (mockUserData) {
+          const mockUser = JSON.parse(mockUserData);
+          userId = mockUser.id;
+        } else {
+          throw new Error('User not authenticated');
+        }
       }
 
       // Build query using the spends_with_conversions view
       let query = supabase
         .from('spends_with_conversions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('archived', false)
         .order('created_at', { ascending: false });
 
@@ -118,14 +128,23 @@ export function useExpenseHistory({
       setHasMore(processedExpenses.length === limit);
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      let errorMessage = 'Failed to load expenses';
+      
+      if (err instanceof Error) {
+        if (err.message.includes('not authenticated')) {
+          errorMessage = 'Please sign in to view your expenses';
+          setExpenses([]);
+        } else if (err.message.includes('network') || err.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (err.message.includes('Failed to fetch')) {
+          errorMessage = 'Unable to connect to the server. Please try again later.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
       setError(errorMessage);
       console.error('Error loading expenses:', err);
-      
-      // If this is the first load and there's an auth error, clear expenses
-      if (errorMessage.includes('not authenticated')) {
-        setExpenses([]);
-      }
     } finally {
       setLoading(false);
     }

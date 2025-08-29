@@ -1,12 +1,15 @@
 import { Dashboard } from '../pages/Dashboard';
 import { AuthGuard } from '../auth/components/AuthGuard';
+import { ErrorBoundary } from '../ui/components/feedback/ErrorBoundary';
 import './App.css';
 
 function App() {
   return (
-    <AuthGuard>
-      <Dashboard />
-    </AuthGuard>
+    <ErrorBoundary>
+      <AuthGuard>
+        <Dashboard />
+      </AuthGuard>
+    </ErrorBoundary>
   );
 }
 
