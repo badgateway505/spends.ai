@@ -1,10 +1,28 @@
-import type { Database } from '../../../supabase/types/database.types';
+// Expense types based on database schema
+export interface Expense {
+  id: string;
+  user_id: string;
+  item: string;
+  amount: number;
+  currency: 'THB' | 'USD';
+  merchant: string | null;
+  group_id: string | null;
+  tag_id: string | null;
+  created_at: string;
+  user_local_datetime: string;
+  fx_rate_date: string;
+  archived: boolean;
+  archived_at: string | null;
+}
 
-// Re-export database types for convenience
-export type Expense = Database['public']['Tables']['spends']['Row'];
-export type ExpenseInsert = Database['public']['Tables']['spends']['Insert'];
-export type ExpenseUpdate = Database['public']['Tables']['spends']['Update'];
-export type ExpenseWithConversions = Database['public']['Views']['spends_with_conversions']['Row'];
+export interface ExpenseWithConversions extends Expense {
+  amount_thb: number;
+  amount_usd: number;
+  group_name: string | null;
+  tag_name: string | null;
+  thb_per_usd: number;
+  usd_per_thb: number;
+}
 
 // Additional frontend types
 export interface ExpenseDisplay extends ExpenseWithConversions {

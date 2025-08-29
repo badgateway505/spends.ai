@@ -43,9 +43,22 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
         <p className="text-gray-600 dark:text-gray-400">
           {isSignUp ? 'Create your account to start tracking expenses' : 'Welcome back! Please sign in to continue'}
         </p>
-        {!isSignUp && (
-          <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded text-xs">
-            <strong>Testing:</strong> Use admin/admin to login with test account
+        {!isSignUp && import.meta.env.DEV && (
+          <div className="mt-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded">
+            <div className="text-xs text-amber-700 dark:text-amber-300 mb-2">
+              <strong>Development Testing:</strong> Use admin/admin to login
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setEmail('admin');
+                setPassword('admin');
+              }}
+              className="text-xs bg-amber-100 dark:bg-amber-800 hover:bg-amber-200 dark:hover:bg-amber-700 px-2 py-1 rounded transition-colors"
+              disabled={loading}
+            >
+              Quick Fill Admin
+            </button>
           </div>
         )}
       </div>

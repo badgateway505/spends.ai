@@ -27,6 +27,7 @@
 - [Feature Mapping](#feature-mapping) - `CTX_ANCHOR: FEATURE_MAPPING`
 - [Navigation Guide](#navigation-guide) - `CTX_ANCHOR: NAVIGATION_GUIDE`
 - [Debugging Guide](#debugging-guide) - `CTX_ANCHOR: DEBUGGING_GUIDE`
+- [Testing & Development](#testing-development) - `CTX_ANCHOR: TESTING_DEVELOPMENT`
 
 ---
 
@@ -59,12 +60,10 @@ src/
 │
 ├── 🔐 auth/                         # Authentication system <!-- CTX_ANCHOR: AUTH_MODULE -->
 │   ├── components/                  # Auth UI components
-│   │   ├── LoginForm.tsx
-│   │   ├── SignupForm.tsx
-│   │   └── GoogleAuthButton.tsx
+│   │   ├── AuthForm.tsx            # ✅ Unified auth form with dev features
+│   │   └── AuthGuard.tsx           # ✅ Route protection component
 │   ├── hooks/                       # Auth-related hooks
-│   │   ├── useAuth.ts
-│   │   └── useSession.ts
+│   │   └── useAuth.ts              # ✅ Auth hook with mock admin support
 │   ├── store/                       # Auth state management
 │   │   └── authStore.ts
 │   └── types/                       # Auth type definitions
@@ -73,13 +72,13 @@ src/
 ├── 💰 expenses/                     # Core expense functionality <!-- CTX_ANCHOR: EXPENSES_MODULE -->
 │   ├── components/                  # Expense-related components
 │   │   ├── capture/                 # Expense capture components
-│   │   │   ├── ExpenseForm.tsx      # Manual text entry
+│   │   │   ├── ExpenseForm.tsx      # ✅ Manual entry with loading states
 │   │   │   ├── VoiceCapture.tsx     # Voice recording interface
 │   │   │   ├── ReviewCard.tsx       # Review & confirm component
 │   │   │   └── VoiceOverlay.tsx     # Full-screen voice interface
 │   │   ├── management/              # Expense management
-│   │   │   ├── ExpenseList.tsx      # History list component
-│   │   │   ├── ExpenseItem.tsx      # Individual expense display
+│   │   │   ├── ExpenseList.tsx      # ✅ Enhanced loading & error states
+│   │   │   ├── ExpenseItem.tsx      # ✅ Individual expense display
 │   │   │   ├── ExpenseEditor.tsx    # Expense editing interface
 │   │   │   └── BulkActions.tsx      # Bulk operations
 │   │   └── shared/                  # Shared expense components
@@ -92,7 +91,7 @@ src/
 │   │   ├── useExpenseEdit.ts        # Expense editing
 │   │   └── useVoiceRecording.ts     # Voice recording logic
 │   ├── services/                    # Expense API services
-│   │   ├── expenseService.ts        # CRUD operations
+│   │   ├── expenseService.ts        # ✅ Enhanced CRUD with error handling
 │   │   ├── classificationService.ts # AI classification
 │   │   └── voiceService.ts          # STT integration
 │   ├── store/                       # Expense state management
@@ -197,9 +196,9 @@ src/
 │   │   │   ├── Button.tsx
 │   │   │   └── FormField.tsx
 │   │   ├── feedback/                # User feedback
-│   │   │   ├── LoadingSpinner.tsx
-│   │   │   ├── ErrorBoundary.tsx
-│   │   │   ├── Toast.tsx
+│   │   │   ├── LoadingSkeleton.tsx  # ✅ Enhanced loading skeletons
+│   │   │   ├── ErrorBoundary.tsx    # ✅ Error boundary component
+│   │   │   ├── Toast.tsx            # ✅ Toast notifications system
 │   │   │   └── ConfirmDialog.tsx
 │   │   ├── data-display/            # Data display components
 │   │   │   ├── Table.tsx
@@ -217,6 +216,7 @@ src/
 │   ├── hooks/                       # UI-related hooks
 │   │   ├── useTheme.ts
 │   │   ├── useBreakpoint.ts
+│   │   ├── useToast.ts              # ✅ Toast notification management
 │   │   └── useLocalStorage.ts
 │   └── utils/                       # UI utilities
 │       ├── cn.ts                    # Class name utilities
@@ -252,7 +252,7 @@ src/
 │       └── offlineQueue.ts          # Offline queue utilities
 │
 ├── 📄 pages/                        # Page components <!-- CTX_ANCHOR: PAGES_MODULE -->
-│   ├── Dashboard.tsx                # Main dashboard
+│   ├── Dashboard.tsx                # ✅ Enhanced main dashboard with toasts
 │   ├── History.tsx                  # Expense history
 │   ├── Analytics.tsx                # Analytics page
 │   ├── Settings.tsx                 # User settings
@@ -496,13 +496,16 @@ model_runs
 - **Project Setup**: Root config files
 
 <!-- CTX_ANCHOR: PHASE_1_CORE_CAPTURE -->
-### Phase 1: Core Capture
+### Phase 1: Core Capture ✅ **COMPLETED**
 
-- **Text Entry**: `/src/expenses/components/capture/ExpenseForm.tsx`
-- **AI Classification**: `/supabase/functions/classify/`
-- **Groups & Tags**: `/src/categories/`
-- **Review Flow**: `/src/expenses/components/capture/ReviewCard.tsx`
-- **Currency Foundation**: `/src/currency/`
+- **Text Entry**: `/src/expenses/components/capture/ExpenseForm.tsx` ✅
+- **Loading States**: Enhanced form submission with loading indicators ✅
+- **Error Handling**: Comprehensive error management with toast notifications ✅
+- **Mock Authentication**: Development admin user (admin/admin) ✅
+- **AI Classification**: `/supabase/functions/classify/` (Ready for integration)
+- **Groups & Tags**: `/src/categories/` (Foundation ready)
+- **Review Flow**: `/src/expenses/components/capture/ReviewCard.tsx` (Foundation ready)
+- **Currency Foundation**: `/src/currency/` (Foundation ready)
 
 <!-- CTX_ANCHOR: PHASE_2_VOICE -->
 ### Phase 2: Voice Integration
@@ -603,5 +606,120 @@ This document uses CTX anchors (HTML comments) to help AI assistants navigate th
 
 ---
 
-_Last Updated: Initial Version with CTX Anchors - [Date]_
-_Next Review: After each major feature addition_
+<!-- CTX_ANCHOR: TESTING_DEVELOPMENT -->
+## 🧪 Testing & Development
+
+### Development Features (MVP-1.2.5 Implementation)
+
+**Mock Authentication System:**
+- **Hardcoded Admin User**: `admin` / `admin` credentials for development testing
+- **Quick Fill Button**: One-click authentication in development mode
+- **Mock Session Management**: Complete session simulation with localStorage persistence
+- **Realistic Loading Delays**: 500-800ms delays to simulate real network conditions
+
+**Enhanced Error Handling:**
+```typescript
+// Error Categories with User-Friendly Messages
+- AUTH_ERROR: "Please sign in and try again"
+- VALIDATION_ERROR: "Please check your input"
+- NETWORK_ERROR: "Check your connection and try again"
+- DATABASE_ERROR: "Service temporarily unavailable"
+- UNKNOWN_ERROR: "An unexpected error occurred"
+```
+
+**Loading States & UX:**
+- **Form Loading**: Submit buttons with spinner animations
+- **List Loading**: Skeleton components for expense lists
+- **Optimistic Updates**: Immediate UI feedback with error rollback
+- **Toast Notifications**: Contextual success/error messages with appropriate durations
+
+**Development Tools:**
+- **Debug Panel**: Real-time application state display (dev mode only)
+- **Console Logging**: Comprehensive logging for debugging
+- **Mock Data**: Realistic test expenses for immediate testing
+- **Error Simulation**: Built-in error scenarios for testing
+
+### Testing Workflow
+
+**1. Authentication Testing:**
+```bash
+# Start development server
+npm run dev
+
+# Quick admin login
+1. Navigate to login page
+2. Click "Quick Fill Admin" button
+3. Submit form to authenticate as admin@test.com
+```
+
+**2. Expense Testing:**
+```bash
+# Test expense creation
+1. Use "Add Expense" button
+2. Fill form with test data
+3. Observe loading states and success feedback
+4. Check debug panel for state changes
+```
+
+**3. Error Testing:**
+```bash
+# Test form validation
+1. Submit empty form → See validation errors
+2. Enter invalid amounts → See validation feedback
+
+# Test network simulation  
+1. Mock network failures in service layer
+2. Observe error toasts and recovery messaging
+```
+
+**4. Loading State Testing:**
+```bash
+# Test loading indicators
+1. Submit forms → See button loading states
+2. Refresh expense list → See skeleton loading
+3. Switch between views → See state transitions
+```
+
+### Mock Data Structure
+
+**Mock Admin User:**
+```typescript
+{
+  id: 'admin-user-id-12345',
+  email: 'admin@test.com',
+  role: 'authenticated',
+  provider: 'mock'
+}
+```
+
+**Mock Expenses:**
+```typescript
+[
+  {
+    item: 'Coffee and croissant',
+    amount: 15000, // 150 THB in cents
+    currency: 'THB',
+    merchant: 'Starbucks'
+  },
+  {
+    item: 'Lunch at local restaurant', 
+    amount: 25000, // 250 THB in cents
+    currency: 'THB',
+    merchant: 'Som Tam Shop'
+  }
+]
+```
+
+### Debug Information
+
+**Development Debug Panel** (bottom-left in dev mode):
+- Current user authentication status
+- Expense count and loading states
+- Error states and messages
+- Form submission status
+- Real-time state updates
+
+---
+
+_Last Updated: MVP-1.2.5 Implementation - December 2024_
+_Next Review: After voice integration (MVP-2.x)_

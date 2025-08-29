@@ -91,11 +91,33 @@ export function Dashboard() {
       // Remove the failed optimistic expense
       removeOptimisticExpense(tempId);
       
-      // Show error toast
-      toast.error(
-        'Failed to Add Expense',
-        error.message || 'Please try again'
-      );
+      // Handle different error types with appropriate messaging
+      let errorTitle = 'Failed to Add Expense';
+      let errorMessage = 'Please try again';
+      let duration = 7000;
+      
+      if (error?.code === 'AUTH_ERROR') {
+        errorTitle = 'Authentication Error';
+        errorMessage = 'Please sign in and try again';
+        duration = 8000;
+      } else if (error?.code === 'VALIDATION_ERROR') {
+        errorTitle = 'Invalid Data';
+        errorMessage = error.message || 'Please check your input';
+        duration = 6000;
+      } else if (error?.code === 'NETWORK_ERROR') {
+        errorTitle = 'Network Error';
+        errorMessage = 'Check your connection and try again';
+        duration = 8000;
+      } else if (error?.code === 'DATABASE_ERROR') {
+        errorTitle = 'Database Error';
+        errorMessage = 'Service temporarily unavailable';
+        duration = 8000;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      // Show error toast with appropriate duration
+      toast.error(errorTitle, errorMessage, duration);
       
       // Re-throw the error so the form can handle it
       throw error;
@@ -105,7 +127,28 @@ export function Dashboard() {
   };
 
   const handleFormError = (error: FormError) => {
+    console.log('Form error:', error);
     setFormError(error);
+    
+    // Show appropriate toast notification based on error type
+    if (error.type === 'validation') {
+      // Don't show toast for validation errors - they're shown inline
+      return;
+    }
+    
+    if (error.type === 'network') {
+      toast.warning(
+        'Network Issue',
+        'Check your connection and try again',
+        7000
+      );
+    } else if (error.type === 'submission') {
+      toast.error(
+        'Submission Failed',
+        error.message,
+        6000
+      );
+    }
   };
 
   return (
@@ -250,6 +293,23 @@ export function Dashboard() {
       
       {/* Toast Notifications */}
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
+      
+      {/* Debug panel in development */}
+      {import.meta.env.DEV && (
+        <div className="fixed bottom-4 left-4 z-40 bg-gray-900 text-white text-xs p-3 rounded-lg shadow-lg opacity-90 max-w-sm">
+          <div className="font-semibold mb-1">Debug Info</div>
+          <div>User: {user?.email || 'Not authenticated'}</div>
+          <div>User ID: {user?.id?.substring(0, 8) || 'N/A'}...</div>
+          <div>Expenses: {todayExpenses.length}</div>
+          <div>Loading: {todayLoading ? '🔄' : '✅'}</div>
+          <div>Submitting: {isSubmitting ? '⏳' : '✅'}</div>
+          {todayError && (
+            <div className="text-red-400 mt-1">
+              Error: {String(todayError).substring(0, 40)}...
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { isDevelopment } from '../../utils/env';
 import type { User, Session } from '@supabase/supabase-js';
 
 interface AuthState {
@@ -50,62 +51,126 @@ export function useAuth() {
   }, []);
 
   const signInWithEmail = async (email: string, password: string) => {
-    // Hardcoded admin user for testing
-    if (email === 'admin' && password === 'admin') {
-      // Create a mock user session for testing
-      const mockUser = {
-        id: 'admin-user-id',
-        email: 'admin@test.com',
-        created_at: new Date().toISOString(),
-        user_metadata: {},
-        app_metadata: {},
-      } as User;
+    setAuthState(prev => ({ ...prev, loading: true }));
+    
+    try {
+      // Development-only mock auth for testing
+      if (isDevelopment && email === 'admin' && password === 'admin') {
+        return await handleMockAuth();
+      }
       
-      const mockSession = {
-        access_token: 'mock-access-token',
-        refresh_token: 'mock-refresh-token',
-        expires_in: 3600,
-        token_type: 'bearer',
-        user: mockUser,
-      } as Session;
-      
-      // Store mock user in localStorage for service access
-      localStorage.setItem('mock-admin-user', JSON.stringify(mockUser));
-      
-      setAuthState({
-        user: mockUser,
-        session: mockSession,
-        loading: false,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
       
-      return { user: mockUser, session: mockSession };
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      setAuthState(prev => ({ ...prev, loading: false }));
+      throw error;
     }
+  };
+
+  const handleMockAuth = async () => {
+    // Simulate loading delay for realistic testing
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const mockUser = {
+      id: 'admin-user-id-12345',
+      email: 'admin@test.com',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      user_metadata: {
+        full_name: 'Admin User',
+        avatar_url: null,
+      },
+      app_metadata: {
+        provider: 'mock',
+        role: 'admin',
+      },
+      aud: 'authenticated',
+      role: 'authenticated',
+      email_confirmed_at: new Date().toISOString(),
+      phone_confirmed_at: undefined,
+      confirmation_sent_at: undefined,
+      recovery_sent_at: undefined,
+      email_change_sent_at: undefined,
+      new_email: undefined,
+      new_phone: undefined,
+      invited_at: undefined,
+      action_link: undefined,
+      phone: undefined,
+    } as User;
+    
+    const mockSession = {
+      access_token: 'mock-access-token-' + Date.now(),
+      refresh_token: 'mock-refresh-token-' + Date.now(),
+      expires_in: 3600,
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+      token_type: 'bearer',
+      user: mockUser,
+    } as Session;
+    
+    // Store mock user in localStorage for service access
+    localStorage.setItem('mock-admin-user', JSON.stringify(mockUser));
+    localStorage.setItem('mock-admin-session', JSON.stringify(mockSession));
+    
+    setAuthState({
+      user: mockUser,
+      session: mockSession,
+      loading: false,
     });
     
-    if (error) throw error;
-    return data;
+    console.log('Mock admin user authenticated successfully:', {
+      id: mockUser.id,
+      email: mockUser.email,
+      provider: 'mock'
+    });
+    
+    return { user: mockUser, session: mockSession };
   };
 
   const signUpWithEmail = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    setAuthState(prev => ({ ...prev, loading: true }));
     
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      setAuthState(prev => ({ ...prev, loading: false }));
+      throw error;
+    }
   };
 
   const signOut = async () => {
-    // Clear mock user data
-    localStorage.removeItem('mock-admin-user');
+    setAuthState(prev => ({ ...prev, loading: true }));
     
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      // Clear mock user data if in development
+      if (isDevelopment) {
+        localStorage.removeItem('mock-admin-user');
+        localStorage.removeItem('mock-admin-session');
+      }
+      
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Reset auth state after successful sign out
+      setAuthState({
+        user: null,
+        session: null,
+        loading: false,
+      });
+    } catch (error) {
+      setAuthState(prev => ({ ...prev, loading: false }));
+      throw error;
+    }
   };
 
   return {
