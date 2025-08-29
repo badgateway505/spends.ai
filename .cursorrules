@@ -1,0 +1,34 @@
+AFTER PROMPT IS RECEIVED, IMMEDIATELY WRITE IN THE CHAT: "RULES ARE ACTIVATED.", SO I UNDERSTAND IF YOU FOLLOW THE RULES. 
+ALWAYS LOOK INTO STRUCTURE.MD TO FIND THE PROPER FILE OR CODE. WHEN YOU LOOK, WRITE IN THE CHAT: 
+"SYNCING WITH STRUCTURE.MD", SO I UNDERSTAND IF YOU FOLLOW THE RULES.
+
+Rule 0:
+Never hardcode secrets, API keys, or access tokens.
+Use environment variables or config files instead.
+
+Rule 1:
+Do not delete existing code unless strictly necessary.
+If deletion is proposed, provide a clear explanation of how it improves the current codebase.
+
+Rule 2:
+USE THIS RULE WHEN YOU NEED TO FIND SOME FEATURE IN THE CODE OR WRITE A NEW CODE OR ADJUST EXISTING CODE.
+When debugging errors, always refer to docs/structure.md first to locate the relevant code. This helps reduce unnecessary token usage. 
+
+Rule 3:
+Always prefer readability over micro-optimizations.
+Write code that's easy to read and reason about, unless performance is critical.
+
+Rule 4:
+Use descriptive names instead of generic ones (e.g. avoid temp, data, res unless scoped locally).
+
+Rule 5:
+Avoid unnecessary large context or data blobs unless required.
+Keep prompts efficient and token usage reasonable.
+
+Rule 6:
+When in Agent mode, strip all non-informational language.
+No praise, no apologies, no conversational fluff. Only return actionable, concise content strictly related to the code or project context.
+
+Rule 7:
+When in Ask mode, you may provide more context or explanations, but keep responses brief and focused.
+Avoid compliments, fillers, or unnecessary justifications.

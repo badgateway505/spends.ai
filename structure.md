@@ -7,7 +7,7 @@
 ```
 spends.ai/
 ├── 🎨 Frontend (React PWA)          # /src
-├── 🔧 Backend (Supabase)            # /supabase  
+├── 🔧 Backend (Supabase)            # /supabase
 ├── 🤖 AI Services (Edge Functions)   # /supabase/functions
 ├── 📊 Database (PostgreSQL)         # /supabase/migrations
 └── 🚀 Infrastructure & Deployment   # /deploy, /.github
@@ -18,6 +18,7 @@ spends.ai/
 ## 📁 Frontend Structure (/src)
 
 ### 🎯 Core Application
+
 ```
 src/
 ├── 📱 app/                          # Main app configuration
@@ -259,6 +260,7 @@ src/
 ## 🔧 Backend Structure (/supabase)
 
 ### 📊 Database Schema
+
 ```
 supabase/
 ├── migrations/                      # Database migrations
@@ -280,6 +282,7 @@ supabase/
 ```
 
 ### 🤖 Edge Functions
+
 ```
 supabase/functions/
 ├── classify/                        # AI expense classification
@@ -337,6 +340,7 @@ supabase/functions/
 ## 🗄️ Database Tables & Relationships
 
 ### Core Tables
+
 ```sql
 -- Users (handled by Supabase Auth)
 auth.users
@@ -412,6 +416,7 @@ model_runs
 ## 🚀 Infrastructure & Deployment
 
 ### GitHub Actions (.github/workflows/)
+
 ```
 .github/workflows/
 ├── ci.yml                          # Continuous Integration
@@ -422,6 +427,7 @@ model_runs
 ```
 
 ### Configuration Files
+
 ```
 ├── .env.example                     # Environment variables template
 ├── .env.local                       # Local development config
@@ -442,12 +448,14 @@ model_runs
 ## 🎯 Feature Mapping by Development Phase
 
 ### Phase 0: Foundation
+
 - **Auth System**: `/src/auth/`
 - **Database Schema**: `/supabase/migrations/001-003`
 - **Basic UI Framework**: `/src/ui/components/layout`
 - **Project Setup**: Root config files
 
 ### Phase 1: Core Capture
+
 - **Text Entry**: `/src/expenses/components/capture/ExpenseForm.tsx`
 - **AI Classification**: `/supabase/functions/classify/`
 - **Groups & Tags**: `/src/categories/`
@@ -455,22 +463,26 @@ model_runs
 - **Currency Foundation**: `/src/currency/`
 
 ### Phase 2: Voice Integration
+
 - **Voice Recording**: `/src/voice/components/VoiceCapture.tsx`
 - **Voice Overlay**: `/src/expenses/components/capture/VoiceOverlay.tsx`
 - **STT Services**: `/src/voice/services/` + `/supabase/functions/stt/`
 
 ### Phase 3: Data Management
+
 - **Main Dashboard**: `/src/pages/Dashboard.tsx`
 - **History Management**: `/src/expenses/components/management/`
 - **Filtering System**: `/src/expenses/hooks/useExpenseHistory.ts`
 - **Archive System**: `/src/categories/hooks/useArchive.ts`
 
 ### Phase 4: Analytics
+
 - **Analytics Dashboard**: `/src/analytics/components/AnalyticsDashboard.tsx`
 - **Charts**: `/src/analytics/components/charts/`
 - **Analytics Backend**: `/supabase/functions/analytics/`
 
 ### Phase 5: Polish & Performance
+
 - **PWA Features**: `/src/pwa/`
 - **3D Background**: `/src/three/`
 - **Performance Optimization**: Build configs, lazy loading
@@ -481,18 +493,21 @@ model_runs
 ## 🔍 Quick Navigation Guide
 
 ### 🐛 Finding Bugs/Issues
+
 1. **UI Issues**: Check `/src/ui/components/` and `/src/pages/`
 2. **API Issues**: Check `/supabase/functions/` and `/src/*/services/`
 3. **State Issues**: Check `/src/*/store/` and `/src/*/hooks/`
 4. **Database Issues**: Check `/supabase/migrations/`
 
 ### ✨ Adding New Features
+
 1. **New Page**: Add to `/src/pages/` and update `/src/app/router.tsx`
 2. **New Component**: Add to appropriate feature folder `/src/[feature]/components/`
 3. **New API**: Add to `/supabase/functions/` and update `/src/*/services/`
 4. **New Database Table**: Add migration to `/supabase/migrations/`
 
 ### 🔧 Configuration Changes
+
 1. **Environment Variables**: Update `.env.example` and deployment configs
 2. **Database Schema**: Create new migration in `/supabase/migrations/`
 3. **Build Configuration**: Update `vite.config.ts` or `package.json`
@@ -511,5 +526,5 @@ model_runs
 
 ---
 
-*Last Updated: Initial Version - [Date]*
-*Next Review: After each major feature addition*
+_Last Updated: Initial Version - [Date]_
+_Next Review: After each major feature addition_
