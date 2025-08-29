@@ -26,7 +26,7 @@
 - ✅ MVP-1.1.1 Create basic React app structure with routing
 - ✅ MVP-1.1.2 Set up Supabase client connection
 - ✅ MVP-1.1.3 Create main dashboard with "Today's Expenses" list
-- MVP-1.1.4 Implement basic expense display component (item, amount, time)
+- ✅ MVP-1.1.4 Implement basic expense display component (item, amount, time)
 - MVP-1.1.5 Add simple styling with Tailwind CSS
 
 #### **MVP-1.2: Manual Expense Entry**
