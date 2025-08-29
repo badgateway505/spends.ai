@@ -61,14 +61,10 @@ subject = "You have been invited"
 content_path = "./supabase/templates/invite.html"
 
 [auth]
-# Enable email confirmations. (default: true)
-enable_confirmations = true
 # Allow manual linking of accounts. (default: false)
 enable_manual_linking = false
 
-[edge_functions]
-# Path to the Edge Functions directory.
-import_map = "./supabase/functions/import_map.json"
+
 
 [storage]
 # The maximum file size allowed (e.g. "5MB", "500KB").

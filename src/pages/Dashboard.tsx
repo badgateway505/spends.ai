@@ -1,9 +1,19 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { ExpenseList } from '../expenses/components/management/ExpenseList';
-import { useExpenseHistory } from '../expenses/hooks/useExpenseHistory.mock';
+import { useExpenseHistory } from '../expenses/hooks/useExpenseHistory';
 import { ThemeToggle } from '../ui/components/layout/ThemeToggle';
+import { ExpenseForm, type FormError } from '../expenses/components/capture/ExpenseForm';
+import { expenseService } from '../expenses/services/expenseService';
+import type { NewExpenseForm } from '../expenses/types/expense.types';
+import { useAuth } from '../auth/hooks/useAuth';
 
 export function Dashboard() {
+  const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, setFormError] = useState<FormError | null>(null);
+  
+  const { user, signOut } = useAuth();
+
   // Get today's date range for filtering
   const todayFilters = useMemo(() => {
     const today = new Date();
@@ -45,6 +55,33 @@ export function Dashboard() {
     }).format(amount);
   };
 
+  const handleExpenseSubmit = async (expense: NewExpenseForm) => {
+    setIsSubmitting(true);
+    setFormError(null);
+    
+    try {
+      // Submit expense using the service
+      const newExpense = await expenseService.createExpense(expense);
+      console.log('Expense created successfully:', newExpense);
+      
+      // Close form and refresh data
+      setShowExpenseForm(false);
+      refreshToday();
+      
+    } catch (error: any) {
+      console.error('Failed to submit expense:', error);
+      
+      // Re-throw the error so the form can handle it
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleFormError = (error: FormError) => {
+    setFormError(error);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <div className="max-w-2xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
@@ -58,8 +95,24 @@ export function Dashboard() {
               <p className="text-gray-600 dark:text-gray-400 text-lg">
                 Voice-powered expense tracking
               </p>
+              {user && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Signed in as {user.email}
+                </p>
+              )}
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <button
+                onClick={signOut}
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200"
+                title="Sign out"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
+            </div>
           </div>
         </header>
 
@@ -100,11 +153,14 @@ export function Dashboard() {
 
           {/* Quick Actions */}
           <div className="flex gap-3 mb-6">
-            <button className="btn-primary flex-1 flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-105">
+            <button 
+              onClick={() => setShowExpenseForm(!showExpenseForm)}
+              className="btn-primary flex-1 flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-105"
+            >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              Add Expense
+              {showExpenseForm ? 'Cancel' : 'Add Expense'}
             </button>
             <button className="btn-secondary flex-1 flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-105">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,6 +170,17 @@ export function Dashboard() {
             </button>
           </div>
         </div>
+
+        {/* Expense Form - appears when showExpenseForm is true */}
+        {showExpenseForm && (
+          <div className="animate-slide-up mb-6">
+            <ExpenseForm 
+              onSubmit={handleExpenseSubmit}
+              loading={isSubmitting}
+              onError={handleFormError}
+            />
+          </div>
+        )}
 
         {/* Today's Expense List */}
         <div className="card p-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
