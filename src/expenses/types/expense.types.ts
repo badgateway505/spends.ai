@@ -1,4 +1,4 @@
-import { Database } from '../../../supabase/types/database.types';
+import type { Database } from '../../../supabase/types/database.types';
 
 // Re-export database types for convenience
 export type Expense = Database['public']['Tables']['spends']['Row'];

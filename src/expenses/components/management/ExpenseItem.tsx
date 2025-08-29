@@ -1,5 +1,5 @@
 import { format, formatDistanceToNow } from 'date-fns';
-import { ExpenseWithConversions } from '../../types/expense.types';
+import type { ExpenseWithConversions } from '../../types/expense.types';
 
 interface ExpenseItemProps {
   expense: ExpenseWithConversions;
@@ -43,15 +43,15 @@ export function ExpenseItem({
   };
 
   return (
-    <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+    <div className="card-hoverable p-4 group cursor-pointer transition-all duration-200 hover:scale-[1.01]">
       {/* Left side: Item and optional details */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+          <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
             {expense.item}
           </h3>
           {expense.group_name && (
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+            <span className="badge-primary">
               {expense.group_name}
             </span>
           )}
@@ -59,16 +59,22 @@ export function ExpenseItem({
         
         <div className="flex items-center gap-2 mt-1">
           <time 
-            className="text-xs text-gray-500 dark:text-gray-400" 
+            className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1" 
             title={getRelativeTime()}
           >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             {formatTime()}
           </time>
           
           {expense.merchant && (
             <>
               <span className="text-xs text-gray-400">·</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              <span className="text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
                 {expense.merchant}
               </span>
             </>
@@ -78,13 +84,13 @@ export function ExpenseItem({
 
       {/* Right side: Amount */}
       <div className="flex flex-col items-end ml-4">
-        <span className="text-sm font-semibold text-gray-900 dark:text-white">
+        <span className="text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
           {formatAmount()}
         </span>
         
         {/* Show conversion if different from preferred currency */}
         {expense.currency !== preferredCurrency && (
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+          <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
             {expense.currency === 'THB' 
               ? `₿${expense.amount_thb.toLocaleString()}` 
               : `$${expense.amount_usd.toFixed(2)}`

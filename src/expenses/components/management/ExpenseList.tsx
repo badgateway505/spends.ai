@@ -1,5 +1,5 @@
 import { ExpenseItem } from './ExpenseItem';
-import { ExpenseWithConversions } from '../../types/expense.types';
+import type { ExpenseWithConversions } from '../../types/expense.types';
 
 interface ExpenseListProps {
   expenses: ExpenseWithConversions[];
@@ -24,13 +24,13 @@ export function ExpenseList({
       <div className="space-y-3">
         {/* Loading skeleton */}
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="animate-pulse p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div key={i} className="card p-4 animate-pulse">
             <div className="flex justify-between">
               <div className="flex-1">
-                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-1/2"></div>
+                <div className="skeleton h-4 w-3/4 mb-2"></div>
+                <div className="skeleton h-3 w-1/2"></div>
               </div>
-              <div className="w-20 h-4 bg-gray-200 dark:bg-gray-600 rounded"></div>
+              <div className="skeleton w-20 h-4"></div>
             </div>
           </div>
         ))}
@@ -41,7 +41,12 @@ export function ExpenseList({
   if (error) {
     return (
       <div className="text-center py-8">
-        <div className="text-red-500 dark:text-red-400 mb-2">
+        <div className="flex items-center justify-center mb-3">
+          <svg className="w-8 h-8 text-danger-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.19 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <div className="text-danger-600 dark:text-danger-400 mb-2 font-medium">
           Error loading expenses
         </div>
         <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -53,11 +58,16 @@ export function ExpenseList({
 
   if (expenses.length === 0) {
     return (
-      <div className="text-center py-8">
-        <div className="text-gray-500 dark:text-gray-400 mb-2">
+      <div className="text-center py-12">
+        <div className="flex items-center justify-center mb-4">
+          <svg className="w-12 h-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <div className="text-gray-600 dark:text-gray-400 mb-2 font-medium">
           {emptyMessage}
         </div>
-        <div className="text-sm text-gray-400 dark:text-gray-500">
+        <div className="text-sm text-gray-500 dark:text-gray-500">
           Start tracking your expenses by adding your first one!
         </div>
       </div>
@@ -69,7 +79,7 @@ export function ExpenseList({
 
   return (
     <div className="space-y-3">
-      {groupedExpenses.map((group, groupIndex) => (
+      {groupedExpenses.map((group) => (
         <div key={group.date || 'no-date'}>
           {group.date && (
             <div className="flex items-center gap-4 mb-3">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { ExpenseWithConversions, ExpenseFilters } from '../types/expense.types';
+import type { ExpenseWithConversions, ExpenseFilters } from '../types/expense.types';
 
 interface UseExpenseHistoryReturn {
   expenses: ExpenseWithConversions[];
@@ -86,7 +86,7 @@ export function useExpenseHistory(options: UseExpenseHistoryOptions = {}): UseEx
         throw new Error(`Failed to load expenses: ${queryError.message}`);
       }
 
-      const newExpenses = data || [];
+      const newExpenses = (data as ExpenseWithConversions[]) || [];
       
       if (reset) {
         setExpenses(newExpenses);
