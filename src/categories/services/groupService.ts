@@ -64,36 +64,16 @@ export class GroupServiceError extends Error {
 // Default expense groups that are created for new users
 export const DEFAULT_GROUPS: Omit<CreateGroupRequest, 'user_id'>[] = [
   {
-    name: 'Food & Dining',
+    name: 'Food',
     description: 'Restaurants, cafes, groceries, and food delivery'
   },
   {
-    name: 'Transportation',
+    name: 'Transport',
     description: 'Taxi, Grab, public transport, fuel, and parking'
   },
   {
-    name: 'Shopping',
-    description: 'Clothes, electronics, books, and general purchases'
-  },
-  {
-    name: 'Bills & Utilities',
-    description: 'Electricity, water, internet, phone, and rent'
-  },
-  {
-    name: 'Entertainment',
-    description: 'Movies, concerts, games, and recreational activities'
-  },
-  {
-    name: 'Health & Fitness',
-    description: 'Healthcare, gym, sports, and wellness'
-  },
-  {
-    name: 'Education',
-    description: 'Courses, books, training, and educational materials'
-  },
-  {
-    name: 'Travel',
-    description: 'Hotels, flights, and travel-related expenses'
+    name: 'Monthly payments',
+    description: 'Rent, utilities, subscriptions, and recurring bills'
   }
 ];
 
@@ -352,6 +332,32 @@ class GroupServiceClass {
       }
       
       throw new GroupServiceError('UNKNOWN_ERROR', 'Failed to archive group');
+    }
+  }
+
+  /**
+   * Unarchive a group (restore from archive)
+   */
+  async unarchiveGroup(id: string): Promise<void> {
+    try {
+      const userId = await this.getCurrentUserId();
+
+      const { error } = await supabase
+        .from('groups')
+        .update({ archived: false })
+        .eq('id', id)
+        .eq('user_id', userId);
+
+      if (error) {
+        throw this.handleSupabaseError(error, 'unarchive group');
+      }
+
+    } catch (error) {
+      if (error instanceof GroupServiceError) {
+        throw error;
+      }
+      
+      throw new GroupServiceError('UNKNOWN_ERROR', 'Failed to unarchive group');
     }
   }
 

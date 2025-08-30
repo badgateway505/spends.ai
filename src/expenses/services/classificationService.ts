@@ -202,26 +202,24 @@ class ClassificationServiceClass {
     const lowerText = text.toLowerCase();
     
     if (lowerText.includes('coffee') || lowerText.includes('lunch') || lowerText.includes('dinner') || 
-        lowerText.includes('food') || lowerText.includes('restaurant') || lowerText.includes('eat')) {
-      return { id: 'mock-group-food', name: 'Food & Dining' };
+        lowerText.includes('food') || lowerText.includes('restaurant') || lowerText.includes('eat') ||
+        lowerText.includes('grocery') || lowerText.includes('market')) {
+      return { id: 'mock-group-food', name: 'Food' };
     }
     
     if (lowerText.includes('taxi') || lowerText.includes('grab') || lowerText.includes('uber') || 
-        lowerText.includes('transport') || lowerText.includes('bus') || lowerText.includes('train')) {
-      return { id: 'mock-group-transport', name: 'Transportation' };
+        lowerText.includes('transport') || lowerText.includes('bus') || lowerText.includes('train') ||
+        lowerText.includes('fuel') || lowerText.includes('gas') || lowerText.includes('parking')) {
+      return { id: 'mock-group-transport', name: 'Transport' };
     }
     
-    if (lowerText.includes('shop') || lowerText.includes('buy') || lowerText.includes('purchase') ||
-        lowerText.includes('store') || lowerText.includes('mall')) {
-      return { id: 'mock-group-shopping', name: 'Shopping' };
+    if (lowerText.includes('rent') || lowerText.includes('bill') || lowerText.includes('electric') || 
+        lowerText.includes('water') || lowerText.includes('internet') || lowerText.includes('phone') ||
+        lowerText.includes('subscription') || lowerText.includes('monthly') || lowerText.includes('utility')) {
+      return { id: 'mock-group-monthly', name: 'Monthly payments' };
     }
     
-    if (lowerText.includes('bill') || lowerText.includes('electric') || lowerText.includes('water') ||
-        lowerText.includes('internet') || lowerText.includes('phone')) {
-      return { id: 'mock-group-bills', name: 'Bills & Utilities' };
-    }
-    
-    return { id: 'mock-group-other', name: 'Other' };
+    return { id: 'mock-group-food', name: 'Food' }; // Default to Food instead of Other
   }
 
   private getMockTag(text: string): Tag | undefined {
