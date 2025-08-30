@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { isDevelopment } from '../../utils/env';
+import { groupService } from '../../categories/services/groupService';
 import type { User, Session } from '@supabase/supabase-js';
 
 interface AuthState {
@@ -30,6 +31,11 @@ export function useAuth() {
         session,
         loading: false,
       });
+
+      // Initialize default groups if user is authenticated
+      if (session?.user) {
+        await initializeUserGroups();
+      }
     };
 
     getInitialSession();
@@ -44,11 +50,29 @@ export function useAuth() {
           session,
           loading: false,
         });
+
+        // Initialize default groups for new sign-ins
+        if (event === 'SIGNED_IN' && session?.user) {
+          await initializeUserGroups();
+        }
       }
     );
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const initializeUserGroups = async () => {
+    try {
+      const hasGroups = await groupService.hasGroups();
+      if (!hasGroups) {
+        console.log('Creating default groups for new user...');
+        await groupService.createDefaultGroups();
+      }
+    } catch (error) {
+      console.warn('Failed to initialize default groups:', error);
+      // Non-critical error, don't block user flow
+    }
+  };
 
   const signInWithEmail = async (email: string, password: string) => {
     setAuthState(prev => ({ ...prev, loading: true }));
@@ -127,6 +151,9 @@ export function useAuth() {
       email: mockUser.email,
       provider: 'mock'
     });
+
+    // Initialize default groups for mock user
+    await initializeUserGroups();
     
     return { user: mockUser, session: mockSession };
   };
