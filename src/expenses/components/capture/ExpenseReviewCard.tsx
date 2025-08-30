@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { ClassificationResult } from '../../services/classificationService';
 import type { NewExpenseForm } from '../../types/expense.types';
+import { groupService, type Group } from '../../../categories/services/groupService';
 
 interface ExpenseReviewCardProps {
   originalData: NewExpenseForm;
@@ -20,6 +21,8 @@ export function ExpenseReviewCard({
   loading = false
 }: ExpenseReviewCardProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [groupsLoading, setGroupsLoading] = useState(false);
   const [editData, setEditData] = useState<NewExpenseForm>(() => {
     // Start with AI-enhanced data
     return {
@@ -31,6 +34,24 @@ export function ExpenseReviewCard({
       tag_id: classification.tag?.id || originalData.tag_id,
     };
   });
+
+  // Fetch groups when component mounts
+  useEffect(() => {
+    const fetchGroups = async () => {
+      setGroupsLoading(true);
+      try {
+        const userGroups = await groupService.getGroups();
+        setGroups(userGroups);
+      } catch (error) {
+        console.error('Failed to fetch groups:', error);
+        // For now, just log the error and continue
+      } finally {
+        setGroupsLoading(false);
+      }
+    };
+
+    fetchGroups();
+  }, []);
 
   const hasChanges = () => {
     return (
@@ -235,6 +256,29 @@ export function ExpenseReviewCard({
               />
             </div>
           )}
+
+          {/* Group Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Category (Optional)
+            </label>
+            <select
+              value={editData.group_id || ''}
+              onChange={(e) => setEditData(prev => ({ ...prev, group_id: e.target.value || undefined }))}
+              className="form-input"
+              disabled={groupsLoading}
+            >
+              <option value="">No category</option>
+              {groups.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
+            {groupsLoading && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Loading categories...</p>
+            )}
+          </div>
         </div>
       ) : (
         <div className="space-y-3 mb-4">
