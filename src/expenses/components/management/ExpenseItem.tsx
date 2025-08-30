@@ -46,13 +46,18 @@ export function ExpenseItem({
     <div className="card-hoverable p-4 group cursor-pointer transition-all duration-200 hover:scale-[1.01]">
       {/* Left side: Item and optional details */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
             {expense.item}
           </h3>
           {expense.group_name && (
             <span className="badge-primary">
               {expense.group_name}
+            </span>
+          )}
+          {expense.tag_name && (
+            <span className="badge-secondary">
+              {expense.tag_name}
             </span>
           )}
         </div>
