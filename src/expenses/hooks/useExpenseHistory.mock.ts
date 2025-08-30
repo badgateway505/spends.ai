@@ -40,8 +40,8 @@ export function useExpenseHistory({
           merchant: 'Starbucks',
           group_id: 'food-group',
           group_name: 'Food & Drinks',
-          tag_id: null,
-          tag_name: null,
+          tag_id: 'breakfast-tag',
+          tag_name: 'Breakfast',
           created_at: new Date().toISOString(),
           user_local_datetime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
           fx_rate_date: new Date().toISOString().split('T')[0],
@@ -82,8 +82,8 @@ export function useExpenseHistory({
           merchant: 'Grab',
           group_id: 'transport-group',
           group_name: 'Transport',
-          tag_id: null,
-          tag_name: null,
+          tag_id: 'commute-tag',
+          tag_name: 'Commute',
           created_at: new Date().toISOString(),
           user_local_datetime: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
           fx_rate_date: new Date().toISOString().split('T')[0],
@@ -124,8 +124,8 @@ export function useExpenseHistory({
           merchant: 'Major Cineplex',
           group_id: 'entertainment-group',
           group_name: 'Entertainment',
-          tag_id: null,
-          tag_name: null,
+          tag_id: 'movies-tag',
+          tag_name: 'Movies',
           created_at: new Date().toISOString(),
           user_local_datetime: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
           fx_rate_date: new Date().toISOString().split('T')[0],
