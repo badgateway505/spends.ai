@@ -336,6 +336,32 @@ class GroupServiceClass {
   }
 
   /**
+   * Unarchive a group (restore from archive)
+   */
+  async unarchiveGroup(id: string): Promise<void> {
+    try {
+      const userId = await this.getCurrentUserId();
+
+      const { error } = await supabase
+        .from('groups')
+        .update({ archived: false })
+        .eq('id', id)
+        .eq('user_id', userId);
+
+      if (error) {
+        throw this.handleSupabaseError(error, 'unarchive group');
+      }
+
+    } catch (error) {
+      if (error instanceof GroupServiceError) {
+        throw error;
+      }
+      
+      throw new GroupServiceError('UNKNOWN_ERROR', 'Failed to unarchive group');
+    }
+  }
+
+  /**
    * Check if user has any groups (to determine if we need to create defaults)
    */
   async hasGroups(): Promise<boolean> {

@@ -4,6 +4,7 @@ import { useExpenseHistory } from '../expenses/hooks/useExpenseHistory';
 import { ThemeToggle } from '../ui/components/layout/ThemeToggle';
 import { ExpenseForm, type FormError } from '../expenses/components/capture/ExpenseForm';
 import { ExpenseReviewCard } from '../expenses/components/capture/ExpenseReviewCard';
+import { GroupManager } from '../categories/components/GroupManager';
 import { ToastContainer } from '../ui/components/feedback/Toast';
 import { useToast } from '../ui/hooks/useToast';
 import { expenseService } from '../expenses/services/expenseService';
@@ -12,8 +13,10 @@ import type { ClassificationResult } from '../expenses/services/classificationSe
 import { useAuth } from '../auth/hooks/useAuth';
 
 type ExpenseFlowStep = 'form' | 'review' | 'none';
+type DashboardTab = 'expenses' | 'groups';
 
 export function Dashboard() {
+  const [activeTab, setActiveTab] = useState<DashboardTab>('expenses');
   const [expenseFlowStep, setExpenseFlowStep] = useState<ExpenseFlowStep>('none');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isClassifying, setIsClassifying] = useState(false);
@@ -239,6 +242,35 @@ export function Dashboard() {
           </div>
         </header>
 
+        {/* Navigation Tabs */}
+        <div className="mb-6">
+          <nav className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab('expenses')}
+              className={`pb-2 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                activeTab === 'expenses'
+                  ? 'border-primary-600 text-primary-600 dark:text-primary-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              Expenses
+            </button>
+            <button
+              onClick={() => setActiveTab('groups')}
+              className={`pb-2 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                activeTab === 'groups'
+                  ? 'border-primary-600 text-primary-600 dark:text-primary-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              Groups
+            </button>
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'expenses' && (
+          <>
         {/* Today's Summary */}
         <div className="card-dashboard p-6 mb-6 animate-slide-up">
           <div className="flex items-center justify-between mb-4">
@@ -371,6 +403,15 @@ export function Dashboard() {
             </div>
           )}
         </div>
+          </>
+        )}
+
+        {/* Groups Tab */}
+        {activeTab === 'groups' && (
+          <div className="animate-fade-in">
+            <GroupManager />
+          </div>
+        )}
 
         {/* Footer */}
         <footer className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
