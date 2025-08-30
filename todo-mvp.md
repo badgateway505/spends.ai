@@ -43,7 +43,7 @@
 
 - MVP-1.3.1 Connect to existing `/classify` Edge Function
 - MVP-1.3.2 Create default groups (Food, Transport, Shopping, etc.)
-- MVP-1.3.3 Show AI suggestions in review step
+- ✅ MVP-1.3.3 Show AI suggestions in review step
 - MVP-1.3.4 Allow user to accept/modify suggestions
 - MVP-1.3.5 Display group/category in expense list
 
