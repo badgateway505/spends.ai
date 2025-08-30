@@ -13,8 +13,8 @@ insert into public.groups (id, user_id, name, description, archived, created_at,
 select 
   gen_random_uuid(),
   auth.uid(),
-  unnest(array['Food & Dining', 'Transportation', 'Shopping', 'Entertainment', 'Utilities', 'Healthcare']),
-  unnest(array['Restaurants, groceries, takeout', 'Taxis, public transport, fuel', 'Clothing, electronics, misc purchases', 'Movies, concerts, hobbies', 'Bills, rent, services', 'Medical, pharmacy, insurance']),
+  unnest(array['Food', 'Transport', 'Monthly payments']),
+  unnest(array['Restaurants, cafes, groceries, and food delivery', 'Taxi, Grab, public transport, fuel, and parking', 'Rent, utilities, subscriptions, and recurring bills']),
   false,
   now(),
   now()

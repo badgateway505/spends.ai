@@ -64,36 +64,16 @@ export class GroupServiceError extends Error {
 // Default expense groups that are created for new users
 export const DEFAULT_GROUPS: Omit<CreateGroupRequest, 'user_id'>[] = [
   {
-    name: 'Food & Dining',
+    name: 'Food',
     description: 'Restaurants, cafes, groceries, and food delivery'
   },
   {
-    name: 'Transportation',
+    name: 'Transport',
     description: 'Taxi, Grab, public transport, fuel, and parking'
   },
   {
-    name: 'Shopping',
-    description: 'Clothes, electronics, books, and general purchases'
-  },
-  {
-    name: 'Bills & Utilities',
-    description: 'Electricity, water, internet, phone, and rent'
-  },
-  {
-    name: 'Entertainment',
-    description: 'Movies, concerts, games, and recreational activities'
-  },
-  {
-    name: 'Health & Fitness',
-    description: 'Healthcare, gym, sports, and wellness'
-  },
-  {
-    name: 'Education',
-    description: 'Courses, books, training, and educational materials'
-  },
-  {
-    name: 'Travel',
-    description: 'Hotels, flights, and travel-related expenses'
+    name: 'Monthly payments',
+    description: 'Rent, utilities, subscriptions, and recurring bills'
   }
 ];
 
