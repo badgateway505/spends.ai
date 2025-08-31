@@ -10,6 +10,7 @@ import { expenseService } from '../expenses/services/expenseService';
 import type { NewExpenseForm } from '../expenses/types/expense.types';
 import type { ClassificationResult } from '../expenses/services/classificationService';
 import { useAuth } from '../auth/hooks/useAuth';
+import { VoiceOverlay } from '../voice/components/VoiceOverlay';
 
 type ExpenseFlowStep = 'form' | 'review' | 'none';
 
@@ -20,6 +21,7 @@ export function Dashboard() {
   const [, setFormError] = useState<FormError | null>(null);
   const [pendingExpenseData, setPendingExpenseData] = useState<NewExpenseForm | null>(null);
   const [classificationResult, setClassificationResult] = useState<ClassificationResult | null>(null);
+  const [isVoiceOverlayOpen, setIsVoiceOverlayOpen] = useState(false);
   
   const { user, signOut } = useAuth();
   const toast = useToast();
@@ -178,6 +180,38 @@ export function Dashboard() {
     setPendingExpenseData(modifiedData);
   };
 
+  const handleVoiceTranscript = async (transcript: string) => {
+    console.log('Voice transcript received:', transcript);
+    
+    // Create expense form data from transcript
+    const voiceExpenseData: NewExpenseForm = {
+      item: transcript,
+      amount: '',
+      currency: 'THB',
+      merchant: '',
+      group_id: undefined,
+      tag_id: undefined,
+    };
+
+    // Process through AI classification
+    try {
+      setIsClassifying(true);
+      await handleExpenseFormSubmit(voiceExpenseData);
+    } catch (error) {
+      console.error('Error processing voice expense:', error);
+      toast.error('Failed to process voice expense');
+    } finally {
+      setIsClassifying(false);
+    }
+  };
+
+  const handleVoiceButtonClick = () => {
+    // Close any open expense forms
+    setExpenseFlowStep('none');
+    // Open voice overlay
+    setIsVoiceOverlayOpen(true);
+  };
+
 
 
   const handleFormError = (error: FormError) => {
@@ -287,6 +321,7 @@ export function Dashboard() {
               {expenseFlowStep === 'form' ? 'Cancel' : 'Add Expense'}
             </button>
             <button 
+              onClick={handleVoiceButtonClick}
               disabled={isClassifying || isSubmitting}
               className="btn-secondary flex-1 flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -383,6 +418,14 @@ export function Dashboard() {
       
       {/* Toast Notifications */}
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
+      
+      {/* Voice Overlay */}
+      <VoiceOverlay
+        isOpen={isVoiceOverlayOpen}
+        onClose={() => setIsVoiceOverlayOpen(false)}
+        onTranscriptComplete={handleVoiceTranscript}
+        language="en-US"
+      />
       
       {/* Debug panel in development */}
       {import.meta.env.DEV && (

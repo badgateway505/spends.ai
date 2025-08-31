@@ -244,11 +244,11 @@ export function useExpenseHistory({
       const newExpenses = data || [];
       
       // Convert amount from integer cents to display format
-      const processedExpenses = newExpenses.map((expense: Record<string, unknown>) => ({
+      const processedExpenses = newExpenses.map((expense: any) => ({
         ...expense,
         amount_thb: (expense.amount_thb as number) / 100, // Convert from cents to THB
         amount_usd: (expense.amount_usd as number) / 100, // Convert from cents to USD
-      }));
+      })) as ExpenseWithConversions[];
 
       if (reset) {
         setExpenses(processedExpenses);
