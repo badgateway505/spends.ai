@@ -115,7 +115,7 @@ class GroupServiceClass {
       
       // Development mock user fallback
       if (isDevelopment) {
-        const mockUserData = localStorage.getItem('mock-admin-user');
+        const mockUserData = localStorage.getItem('mock-debug-user');
         if (mockUserData) {
           const mockUser = JSON.parse(mockUserData);
           return mockUser.id;
@@ -156,7 +156,7 @@ class GroupServiceClass {
       const userId = await this.getCurrentUserId();
       
       // For development with mock user, return mock groups
-      if (isDevelopment && userId === 'admin-user-id-12345') {
+      if (isDevelopment && userId === 'debug-user-id-12345') {
         await new Promise(resolve => setTimeout(resolve, 400));
         
         const mockGroups: Group[] = DEFAULT_GROUPS.map((group, index) => ({
@@ -222,7 +222,7 @@ class GroupServiceClass {
       };
 
       // For development with mock user
-      if (isDevelopment && userId === 'admin-user-id-12345') {
+      if (isDevelopment && userId === 'debug-user-id-12345') {
         await new Promise(resolve => setTimeout(resolve, 600));
         
         const mockGroup: Group = {
@@ -265,23 +265,44 @@ class GroupServiceClass {
   async createDefaultGroups(): Promise<Group[]> {
     try {
       console.log('Creating default groups...');
-      const createdGroups: Group[] = [];
+      const userId = await this.getCurrentUserId();
 
-      for (const groupData of DEFAULT_GROUPS) {
-        try {
-          const group = await this.createGroup(groupData);
-          createdGroups.push(group);
-        } catch (error) {
-          // Continue creating other groups even if one fails
-          console.warn(`Failed to create default group "${groupData.name}":`, error);
+      // For development with mock user, create groups directly
+      if (isDevelopment && userId === 'debug-user-id-12345') {
+        const createdGroups: Group[] = [];
+
+        for (const groupData of DEFAULT_GROUPS) {
+          try {
+            const group = await this.createGroup(groupData);
+            createdGroups.push(group);
+          } catch (error) {
+            // Continue creating other groups even if one fails
+            console.warn(`Failed to create default group "${groupData.name}":`, error);
+          }
         }
+
+        console.log(`Created ${createdGroups.length} default groups for mock user`);
+        return createdGroups;
       }
 
-      console.log(`Created ${createdGroups.length} default groups`);
-      return createdGroups;
+      // For real users, use the database function
+      const { error } = await supabase.rpc('ensure_default_groups');
+      
+      if (error) {
+        console.error('Error calling ensure_default_groups:', error);
+        throw new GroupServiceError('DATABASE_ERROR', 'Failed to create default groups', error);
+      }
+
+      // Fetch the newly created groups
+      const groups = await this.getGroups();
+      console.log(`Created ${groups.length} default groups`);
+      return groups;
 
     } catch (error) {
       console.error('Error creating default groups:', error);
+      if (error instanceof GroupServiceError) {
+        throw error;
+      }
       throw new GroupServiceError('UNKNOWN_ERROR', 'Failed to create default groups');
     }
   }
@@ -293,7 +314,7 @@ class GroupServiceClass {
     try {
       const userId = await this.getCurrentUserId();
 
-      const updateData: Record<string, any> = {};
+      const updateData: Record<string, string | null> = {};
 
       if (updates.name !== undefined) {
         if (!updates.name.trim()) {

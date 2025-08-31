@@ -106,10 +106,24 @@ class ClassificationServiceClass {
         return mockResult;
       }
 
-      // Get current session
-      const { data: { session }, error: authError } = await supabase.auth.getSession();
+      // Get current session (with mock support)
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (authError || !session) {
+      let accessToken: string | null = null;
+      
+      if (session) {
+        accessToken = session.access_token;
+      } else if (isDevelopment) {
+        // Try to get mock session data
+        const mockSessionData = localStorage.getItem('mock-debug-session');
+        if (mockSessionData) {
+          const mockSession = JSON.parse(mockSessionData);
+          accessToken = mockSession.access_token;
+          console.log('Using mock session for classification');
+        }
+      }
+      
+      if (!accessToken) {
         throw new ClassificationServiceError('AUTH_ERROR', 'Authentication required for AI classification');
       }
 
@@ -120,7 +134,7 @@ class ClassificationServiceClass {
           user_timezone: userTimezone
         },
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 

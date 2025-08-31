@@ -49,12 +49,12 @@ class ExpenseServiceClass {
       
       // Development-only mock user fallback
       if (isDevelopment) {
-        const mockUserData = localStorage.getItem('mock-admin-user');
-        const mockSessionData = localStorage.getItem('mock-admin-session');
+        const mockUserData = localStorage.getItem('mock-debug-user');
+        const mockSessionData = localStorage.getItem('mock-debug-session');
         
         if (mockUserData && mockSessionData) {
           const mockUser = JSON.parse(mockUserData);
-          console.log('Using mock admin user:', mockUser.id);
+          console.log('Using mock debug user:', mockUser.id);
           return mockUser.id;
         }
       }
@@ -104,15 +104,16 @@ class ExpenseServiceClass {
       console.log('Creating expense with AI classification:', formData);
       
       let classification: ClassificationResult | undefined;
-      let enhancedFormData = { ...formData };
+      const enhancedFormData = { ...formData };
 
       // Try AI classification if requested and not disabled
       if (formData.useAI !== false) {
         try {
           // Ensure user has default groups if they don't have any
+          // This is a safety fallback since groups should be created on signup
           const hasGroups = await groupService.hasGroups();
           if (!hasGroups) {
-            console.log('Creating default groups for new user...');
+            console.log('Creating default groups for existing user...');
             await groupService.createDefaultGroups();
           }
 
@@ -222,7 +223,7 @@ class ExpenseServiceClass {
       console.log('Inserting expense data:', expenseData);
 
       // For development with mock user, simulate database insert
-      if (isDevelopment && userId === 'admin-user-id-12345') {
+      if (isDevelopment && userId === 'debug-user-id-12345') {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 800));
         
@@ -281,11 +282,11 @@ class ExpenseServiceClass {
       console.log('Fetching expenses for user:', userId, 'with options:', options);
       
       // For development with mock user, return mock data
-      if (isDevelopment && userId === 'admin-user-id-12345') {
+      if (isDevelopment && userId === 'debug-user-id-12345') {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 600));
         
-        // Return mock expenses for demo
+        // Return mock expenses for demo with groups and tags
         const mockExpenses: ExpenseRow[] = [
           {
             id: 'mock-expense-1',
@@ -294,7 +295,7 @@ class ExpenseServiceClass {
             amount: 15000, // 150 THB in cents
             currency: 'THB',
             merchant: 'Starbucks',
-            group_id: null,
+            group_id: 'mock-group-1', // Food & Dining
             tag_id: null,
             created_at: new Date().toISOString(),
             user_local_datetime: new Date().toISOString(),
@@ -309,10 +310,25 @@ class ExpenseServiceClass {
             amount: 25000, // 250 THB in cents
             currency: 'THB',
             merchant: 'Som Tam Shop',
-            group_id: null,
-            tag_id: null,
+            group_id: 'mock-group-1', // Food & Dining
+            tag_id: 'mock-tag-1', // business
             created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
             user_local_datetime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            fx_rate_date: new Date().toISOString().split('T')[0],
+            archived: false,
+            archived_at: null,
+          },
+          {
+            id: 'mock-expense-3',
+            user_id: userId,
+            item: 'Taxi to airport',
+            amount: 45000, // 450 THB in cents
+            currency: 'THB',
+            merchant: 'Grab',
+            group_id: 'mock-group-2', // Transportation
+            tag_id: null,
+            created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+            user_local_datetime: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
             fx_rate_date: new Date().toISOString().split('T')[0],
             archived: false,
             archived_at: null,

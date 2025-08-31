@@ -51,6 +51,140 @@ export function useExpenseHistory({
         }
       }
 
+      // For development with mock admin user, return mock data
+      if (userId === 'debug-user-id-12345') {
+        await new Promise(resolve => setTimeout(resolve, 600));
+        
+        const mockExpenses: ExpenseWithConversions[] = [
+          {
+            id: 'mock-expense-1',
+            user_id: userId,
+            item: 'Coffee and croissant',
+            amount: 15000, // 150 THB in cents
+            currency: 'THB',
+            merchant: 'Starbucks',
+            group_id: 'mock-group-1',
+            tag_id: null,
+            created_at: new Date().toISOString(),
+            user_local_datetime: new Date().toISOString(),
+            fx_rate_date: new Date().toISOString().split('T')[0],
+            archived: false,
+            archived_at: null,
+            amount_thb: 150, // Display amounts in normal currency units
+            amount_usd: 4.29,
+            group_name: 'Food & Dining',
+            tag_name: null,
+            thb_per_usd: 35.0,
+            usd_per_thb: 0.0286,
+          },
+          {
+            id: 'mock-expense-2',
+            user_id: userId,
+            item: 'Lunch at local restaurant',
+            amount: 25000, // 250 THB in cents
+            currency: 'THB',
+            merchant: 'Som Tam Shop',
+            group_id: 'mock-group-1',
+            tag_id: 'mock-tag-1',
+            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            user_local_datetime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            fx_rate_date: new Date().toISOString().split('T')[0],
+            archived: false,
+            archived_at: null,
+            amount_thb: 250,
+            amount_usd: 7.14,
+            group_name: 'Food & Dining',
+            tag_name: 'Business',
+            thb_per_usd: 35.0,
+            usd_per_thb: 0.0286,
+          },
+          {
+            id: 'mock-expense-3',
+            user_id: userId,
+            item: 'Taxi to airport',
+            amount: 45000, // 450 THB in cents
+            currency: 'THB',
+            merchant: 'Grab',
+            group_id: 'mock-group-2',
+            tag_id: null,
+            created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+            user_local_datetime: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+            fx_rate_date: new Date().toISOString().split('T')[0],
+            archived: false,
+            archived_at: null,
+            amount_thb: 450,
+            amount_usd: 12.86,
+            group_name: 'Transportation',
+            tag_name: null,
+            thb_per_usd: 35.0,
+            usd_per_thb: 0.0286,
+          },
+          {
+            id: 'mock-expense-4',
+            user_id: userId,
+            item: 'New headphones',
+            amount: 3500, // $35 USD in cents
+            currency: 'USD',
+            merchant: 'Amazon',
+            group_id: 'mock-group-3',
+            tag_id: 'mock-tag-2',
+            created_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+            user_local_datetime: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+            fx_rate_date: new Date().toISOString().split('T')[0],
+            archived: false,
+            archived_at: null,
+            amount_thb: 1225,
+            amount_usd: 35,
+            group_name: 'Shopping',
+            tag_name: 'Personal',
+            thb_per_usd: 35.0,
+            usd_per_thb: 0.0286,
+          },
+        ];
+        
+        // Apply filters similar to the real query
+        let filteredExpenses = mockExpenses;
+        
+        if (filters?.dateRange) {
+          const { from, to } = filters.dateRange;
+          filteredExpenses = filteredExpenses.filter(expense => {
+            const expenseDate = new Date(expense.user_local_datetime);
+            return expenseDate >= from && expenseDate <= to;
+          });
+        }
+
+        if (filters?.currencies && filters.currencies.length > 0) {
+          filteredExpenses = filteredExpenses.filter(expense => 
+            filters.currencies!.includes(expense.currency)
+          );
+        }
+
+        if (filters?.groupIds && filters.groupIds.length > 0) {
+          filteredExpenses = filteredExpenses.filter(expense => 
+            expense.group_id && filters.groupIds!.includes(expense.group_id)
+          );
+        }
+
+        if (filters?.searchQuery) {
+          const searchTerm = filters.searchQuery.toLowerCase();
+          filteredExpenses = filteredExpenses.filter(expense =>
+            expense.item.toLowerCase().includes(searchTerm) ||
+            (expense.merchant?.toLowerCase().includes(searchTerm) ?? false)
+          );
+        }
+        
+        if (reset) {
+          setExpenses(filteredExpenses);
+          setOffset(limit);
+        } else {
+          setExpenses(prev => [...prev, ...filteredExpenses]);
+          setOffset(prev => prev + limit);
+        }
+
+        setHasMore(false); // No pagination for mock data
+        return;
+      }
+
       // Build query using the spends_with_conversions view
       let query = supabase
         .from('spends_with_conversions')
@@ -110,10 +244,10 @@ export function useExpenseHistory({
       const newExpenses = data || [];
       
       // Convert amount from integer cents to display format
-      const processedExpenses = newExpenses.map((expense: any) => ({
+      const processedExpenses = newExpenses.map((expense: Record<string, unknown>) => ({
         ...expense,
-        amount_thb: expense.amount_thb / 100, // Convert from cents to THB
-        amount_usd: expense.amount_usd / 100, // Convert from cents to USD
+        amount_thb: (expense.amount_thb as number) / 100, // Convert from cents to THB
+        amount_usd: (expense.amount_usd as number) / 100, // Convert from cents to USD
       }));
 
       if (reset) {
@@ -220,7 +354,7 @@ export function useExpenseHistory({
   // Load initial data
   useEffect(() => {
     refresh();
-  }, [filters]); // Only reload when filters change
+  }, [filters, refresh]); // Only reload when filters change
 
   return {
     expenses: allExpenses,
