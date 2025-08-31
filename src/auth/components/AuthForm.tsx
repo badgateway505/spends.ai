@@ -11,6 +11,7 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   
   const { signInWithEmail, signUpWithEmail } = useAuth();
 
@@ -18,15 +19,27 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
       if (isSignUp) {
-        await signUpWithEmail(email, password);
+        const result = await signUpWithEmail(email, password);
+        
+        // Check if email confirmation is required
+        if (result?.user && !result.session) {
+          setSuccess('Account created! Please check your email to confirm your account.');
+        } else if (result?.session) {
+          setSuccess('Account created and you are now logged in!');
+          onSuccess?.();
+        } else {
+          setSuccess('Account created successfully!');
+          onSuccess?.();
+        }
       } else {
         await signInWithEmail(email, password);
+        setSuccess('Welcome back! You are now logged in.');
+        onSuccess?.();
       }
-      
-      onSuccess?.();
     } catch (err: unknown) {
       const error = err as Error;
       setError(error.message || 'An error occurred');
@@ -50,6 +63,12 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
       {error && (
         <div className="mb-4 p-3 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800 rounded-lg">
           <p className="text-sm text-danger-600 dark:text-danger-400">{error}</p>
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-4 p-3 bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg">
+          <p className="text-sm text-success-600 dark:text-success-400">{success}</p>
         </div>
       )}
 
@@ -109,7 +128,11 @@ export function AuthForm({ onSuccess }: AuthFormProps) {
       <div className="mt-4 text-center">
         <button
           type="button"
-          onClick={() => setIsSignUp(!isSignUp)}
+          onClick={() => {
+            setIsSignUp(!isSignUp);
+            setError(null);
+            setSuccess(null);
+          }}
           className="text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 text-sm font-medium"
           disabled={loading}
         >

@@ -1,6 +1,5 @@
 import { supabase } from '../../lib/supabase';
-import { isDevelopment } from '../../utils/env';
-import type { NewExpenseForm, Expense } from '../types/expense.types';
+import type { NewExpenseForm, Expense, ExpenseWithConversions } from '../types/expense.types';
 import type { PostgrestError } from '@supabase/supabase-js';
 import { classificationService, type ClassificationResult } from './classificationService';
 import { groupService } from '../../categories/services/groupService';
@@ -38,25 +37,13 @@ class ExpenseServiceClass {
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
       
-      if (error && !isDevelopment) {
+      if (error) {
         console.error('Auth error getting user:', error);
         throw new ExpenseServiceError('AUTH_ERROR', 'Authentication failed');
       }
       
       if (user) {
         return user.id;
-      }
-      
-      // Development-only mock user fallback
-      if (isDevelopment) {
-        const mockUserData = localStorage.getItem('mock-debug-user');
-        const mockSessionData = localStorage.getItem('mock-debug-session');
-        
-        if (mockUserData && mockSessionData) {
-          const mockUser = JSON.parse(mockUserData);
-          console.log('Using mock debug user:', mockUser.id);
-          return mockUser.id;
-        }
       }
       
       throw new ExpenseServiceError('AUTH_ERROR', 'User not authenticated');
@@ -222,8 +209,8 @@ class ExpenseServiceClass {
 
       console.log('Inserting expense data:', expenseData);
 
-      // For development with mock user, simulate database insert
-      if (isDevelopment && userId === 'debug-user-id-12345') {
+      // Skip mock user logic in production
+      if (false) {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 800));
         
@@ -276,71 +263,15 @@ class ExpenseServiceClass {
     dateTo?: Date;
     currency?: 'THB' | 'USD';
     archived?: boolean;
-  } = {}): Promise<ExpenseRow[]> {
+  } = {}): Promise<ExpenseWithConversions[]> {
     try {
       const userId = await this.getCurrentUserId();
       console.log('Fetching expenses for user:', userId, 'with options:', options);
       
-      // For development with mock user, return mock data
-      if (isDevelopment && userId === 'debug-user-id-12345') {
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 600));
-        
-        // Return mock expenses for demo with groups and tags
-        const mockExpenses: ExpenseRow[] = [
-          {
-            id: 'mock-expense-1',
-            user_id: userId,
-            item: 'Coffee and croissant',
-            amount: 15000, // 150 THB in cents
-            currency: 'THB',
-            merchant: 'Starbucks',
-            group_id: 'mock-group-1', // Food & Dining
-            tag_id: null,
-            created_at: new Date().toISOString(),
-            user_local_datetime: new Date().toISOString(),
-            fx_rate_date: new Date().toISOString().split('T')[0],
-            archived: false,
-            archived_at: null,
-          },
-          {
-            id: 'mock-expense-2',
-            user_id: userId,
-            item: 'Lunch at local restaurant',
-            amount: 25000, // 250 THB in cents
-            currency: 'THB',
-            merchant: 'Som Tam Shop',
-            group_id: 'mock-group-1', // Food & Dining
-            tag_id: 'mock-tag-1', // business
-            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            user_local_datetime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            fx_rate_date: new Date().toISOString().split('T')[0],
-            archived: false,
-            archived_at: null,
-          },
-          {
-            id: 'mock-expense-3',
-            user_id: userId,
-            item: 'Taxi to airport',
-            amount: 45000, // 450 THB in cents
-            currency: 'THB',
-            merchant: 'Grab',
-            group_id: 'mock-group-2', // Transportation
-            tag_id: null,
-            created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-            user_local_datetime: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-            fx_rate_date: new Date().toISOString().split('T')[0],
-            archived: false,
-            archived_at: null,
-          },
-        ];
-        
-        console.log('Returning mock expenses:', mockExpenses.length);
-        return mockExpenses;
-      }
+
 
       let query = supabase
-        .from('spends')
+        .from('spends_with_conversions')
         .select('*')
         .eq('user_id', userId)
         .eq('archived', options.archived ?? false)
@@ -426,11 +357,37 @@ class ExpenseServiceClass {
         updateData.tag_id = updates.tag_id || null;
       }
 
+      // Skip mock user logic in production
+      if (false) {
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Create mock updated expense response
+        const mockUpdatedExpense: ExpenseRow = {
+          id: id,
+          user_id: userId,
+          item: updateData.item as string,
+          amount: updateData.amount as number,
+          currency: updateData.currency as 'THB' | 'USD',
+          merchant: updateData.merchant as string | null,
+          group_id: updateData.group_id as string | null,
+          tag_id: updateData.tag_id as string | null,
+          created_at: new Date().toISOString(),
+          user_local_datetime: new Date().toISOString(),
+          fx_rate_date: new Date().toISOString().split('T')[0],
+          archived: false,
+          archived_at: null,
+        };
+        
+        console.log('Mock expense updated:', mockUpdatedExpense);
+        return mockUpdatedExpense;
+      }
+
       const { data, error } = await supabase
         .from('spends')
         .update(updateData)
         .eq('id', id)
-.eq('user_id', userId) // Ensure user can only update their own expenses
+        .eq('user_id', userId) // Ensure user can only update their own expenses
         .select()
         .single();
 
@@ -460,6 +417,14 @@ class ExpenseServiceClass {
     try {
       const userId = await this.getCurrentUserId();
 
+      // Skip mock user logic in production
+      if (false) {
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        console.log('Mock expense deleted:', id);
+        return;
+      }
+
       const { error } = await supabase
         .from('spends')
         .update({ 
@@ -467,7 +432,7 @@ class ExpenseServiceClass {
           archived_at: new Date().toISOString() 
         })
         .eq('id', id)
-.eq('user_id', userId); // Ensure user can only delete their own expenses
+        .eq('user_id', userId); // Ensure user can only delete their own expenses
 
       if (error) {
         throw this.handleSupabaseError(error, 'delete expense');

@@ -11,6 +11,9 @@ import type { NewExpenseForm } from '../expenses/types/expense.types';
 import type { ClassificationResult } from '../expenses/services/classificationService';
 import { useAuth } from '../auth/hooks/useAuth';
 import { VoiceOverlay } from '../voice/components/VoiceOverlay';
+import { useAnalytics } from '../analytics/hooks/useAnalytics';
+import { SpendingPieChart } from '../analytics/components/charts/SpendingPieChart';
+import { SpendingSummaryComponent } from '../analytics/components/insights/SpendingSummary';
 
 type ExpenseFlowStep = 'form' | 'review' | 'none';
 
@@ -25,6 +28,21 @@ export function Dashboard() {
   
   const { user, signOut } = useAuth();
   const toast = useToast();
+
+  // Analytics for last 7 days
+  const analyticsFilters = useMemo(() => ({
+    dateRange: {
+      from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+      to: new Date(),
+    },
+    includeArchived: false,
+  }), []);
+
+  const { 
+    summary: analyticsSummary, 
+    categoryStats, 
+    loading: analyticsLoading 
+  } = useAnalytics(analyticsFilters);
 
   // Get today's date range for filtering
   const todayFilters = useMemo(() => {
@@ -49,7 +67,9 @@ export function Dashboard() {
     error: todayError,
     refresh: refreshToday,
     addExpenseOptimistically,
-    removeOptimisticExpense
+    removeOptimisticExpense,
+    updateExpense,
+    deleteExpense
   } = useExpenseHistory({
     filters: todayFilters,
     limit: 50, // Show all expenses for today
@@ -261,6 +281,19 @@ export function Dashboard() {
             <div className="flex items-center gap-2">
               <ThemeToggle />
               <button
+                onClick={() => {
+                  window.history.pushState({}, '', '/settings');
+                  window.dispatchEvent(new PopStateEvent('popstate'));
+                }}
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200"
+                title="Settings"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+              <button
                 onClick={signOut}
                 className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors duration-200"
                 title="Sign out"
@@ -376,8 +409,94 @@ export function Dashboard() {
           </div>
         )}
 
+        {/* Analytics Section */}
+        {analyticsSummary && categoryStats.length > 0 && (
+          <div className="card p-6 animate-slide-up mb-6" style={{ animationDelay: '200ms' }}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Spending by Category
+              </h3>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Last 7 days
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Pie Chart */}
+              <div className="flex justify-center">
+                <SpendingPieChart
+                  data={categoryStats}
+                  preferredCurrency="THB"
+                  size="md"
+                  showLegend={false}
+                  showValues={false}
+                />
+              </div>
+
+              {/* Category List */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                  Category Breakdown
+                </h4>
+                {categoryStats.slice(0, 6).map((category, index) => {
+                  const colors = [
+                    'bg-blue-500', 'bg-green-500', 'bg-orange-500', 
+                    'bg-red-500', 'bg-purple-500', 'bg-cyan-500'
+                  ];
+                  
+                  return (
+                    <div key={category.group_id || `category-${index}`} className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${colors[index % colors.length]}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                            {category.group_name}
+                          </span>
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                            ฿{category.total_amount_thb.toFixed(0)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {category.expense_count} expenses
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {category.percentage.toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                {categoryStats.length > 6 && (
+                  <div className="text-center mt-4">
+                    <button className="text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 text-sm font-medium transition-colors duration-200">
+                      View all categories
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Analytics Summary (when data available) */}
+        {analyticsSummary && !analyticsLoading && (
+          <div className="animate-slide-up mb-6" style={{ animationDelay: '250ms' }}>
+            <SpendingSummaryComponent 
+              summary={analyticsSummary}
+              preferredCurrency="THB"
+              loading={analyticsLoading}
+            />
+          </div>
+        )}
+
         {/* Today's Expense List */}
-        <div className="card p-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
+        <div className="card p-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -392,6 +511,8 @@ export function Dashboard() {
             preferredCurrency="THB"
             showDividers={false}
             emptyMessage="No expenses today. Start tracking your spending!"
+            onExpenseUpdated={updateExpense}
+            onExpenseDeleted={deleteExpense}
           />
 
           {/* View All Link */}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { ClassificationResult } from '../../services/classificationService';
 import type { NewExpenseForm } from '../../types/expense.types';
 import { groupService, type Group } from '../../../categories/services/groupService';
+import { GroupBadge } from '../../../ui/components/data-display/GroupBadge';
 
 interface ExpenseReviewCardProps {
   originalData: NewExpenseForm;
@@ -289,6 +290,25 @@ export function ExpenseReviewCard({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Category (Optional)
             </label>
+            
+            {/* Selected Group Display */}
+            {editData.group_id && !groupsLoading && (
+              <div className="mb-2">
+                {(() => {
+                  const selectedGroup = groups.find(g => g.id === editData.group_id);
+                  return selectedGroup ? (
+                    <GroupBadge
+                      name={selectedGroup.name}
+                      icon={selectedGroup.icon}
+                      color={selectedGroup.color}
+                      size="sm"
+                      variant="filled"
+                    />
+                  ) : null;
+                })()}
+              </div>
+            )}
+            
             <select
               value={editData.group_id || ''}
               onChange={(e) => setEditData(prev => ({ ...prev, group_id: e.target.value || undefined }))}
@@ -301,6 +321,7 @@ export function ExpenseReviewCard({
               ) : (
                 groups.map(group => (
                   <option key={group.id} value={group.id}>
+                    {group.icon ? `${group.icon} ` : ''}
                     {group.name}
                   </option>
                 ))
@@ -398,21 +419,27 @@ export function ExpenseReviewCard({
                     <span className="text-sm font-medium text-purple-800 dark:text-purple-200">Smart Category</span>
                   </div>
                   {originalData.group_id && originalData.group_id !== classification.group.id ? (
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                        <span>Original:</span>
-                        <span className="line-through bg-red-100 dark:bg-red-900/20 px-2 py-1 rounded">Previous category</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-xs text-gray-500 dark:text-gray-400">AI Suggested:</span>
-                        <span className="bg-green-100 dark:bg-green-900/20 px-2 py-1 rounded font-medium text-green-800 dark:text-green-200">{classification.group.name}</span>
-                      </div>
+                    <div className="space-y-2">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">AI Suggested:</div>
+                      <GroupBadge
+                        name={classification.group.name}
+                        icon={classification.group.icon}
+                        color={classification.group.color}
+                        size="sm"
+                        variant="filled"
+                      />
                     </div>
                   ) : (
-                    <div className="bg-purple-100 dark:bg-purple-900/20 px-3 py-2 rounded">
-                      <div className="font-medium text-purple-800 dark:text-purple-200">{classification.group.name}</div>
+                    <div className="space-y-2">
+                      <GroupBadge
+                        name={classification.group.name}
+                        icon={classification.group.icon}
+                        color={classification.group.color}
+                        size="sm"
+                        variant="filled"
+                      />
                       {classification.group.description && (
-                        <div className="text-xs text-purple-600 dark:text-purple-300 mt-1">{classification.group.description}</div>
+                        <div className="text-xs text-purple-600 dark:text-purple-300">{classification.group.description}</div>
                       )}
                     </div>
                   )}

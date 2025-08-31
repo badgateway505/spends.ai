@@ -127,8 +127,8 @@
 - ✅ MVP-3.1.1 Implement expense list with date grouping
 - ✅ MVP-3.1.2 Add "Today" vs "History" tabs/views
 - ✅ MVP-3.1.3 Show daily totals and currency conversion
-- ❌ MVP-3.1.4 Basic expense editing (tap to edit)
-- ❌ MVP-3.1.5 Simple expense deletion with confirmation
+- ✅ MVP-3.1.4 Basic expense editing (tap to edit)
+- ✅ MVP-3.1.5 Simple expense deletion with confirmation
 
 #### **MVP-3.2: Basic Filtering & Search**
 **Goal:** User can find specific expenses
@@ -149,7 +149,7 @@
 - ✅ MVP-4.1.1 Implement THB/USD currency selector
 - ✅ MVP-4.1.2 Connect to FX rates API and display conversions
 - ✅ MVP-4.1.3 Show amounts in user's preferred currency
-- ❌ MVP-4.1.4 Add currency settings (default currency)
+- ✅ MVP-4.1.4 Add currency settings (default currency)
 - ✅ MVP-4.1.5 Handle FX rate loading and fallbacks
 
 #### **MVP-4.2: Groups & Tags Management**
@@ -158,7 +158,7 @@
 - ✅ MVP-4.2.1 Create groups management page (CRUD operations)
 - ✅ MVP-4.2.2 Allow creating new groups during expense entry
 - ✅ MVP-4.2.3 Implement basic tags system
-- ❌ MVP-4.2.4 Show group/tag statistics (spending by category)
+- ✅ MVP-4.2.4 Show group/tag statistics (spending by category)
 - ❌ MVP-4.2.5 Add group icons and colors
 
 ---

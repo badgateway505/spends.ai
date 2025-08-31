@@ -16,9 +16,7 @@ interface EnvironmentConfig {
   };
   debug: {
     debugMode: boolean;
-    mockApi: boolean;
     performanceMonitoring: boolean;
-    autoLogin: boolean;
   };
   auth: {
     googleClientId?: string;
@@ -77,9 +75,7 @@ export const env: EnvironmentConfig = {
 
   debug: {
     debugMode: getEnvBool('VITE_DEBUG_MODE', false),
-    mockApi: getEnvBool('VITE_MOCK_API', false),
     performanceMonitoring: getEnvBool('VITE_PERFORMANCE_MONITORING', false),
-    autoLogin: getEnvBool('VITE_DEBUG_AUTO_LOGIN', true), // Hardcoded to true for development
   },
 
   auth: {

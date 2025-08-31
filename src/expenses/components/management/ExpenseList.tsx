@@ -9,6 +9,8 @@ interface ExpenseListProps {
   preferredCurrency?: 'THB' | 'USD';
   showDividers?: boolean;
   emptyMessage?: string;
+  onExpenseUpdated?: (updatedExpense: ExpenseWithConversions) => void;
+  onExpenseDeleted?: (expenseId: string) => void;
 }
 
 export function ExpenseList({ 
@@ -17,7 +19,9 @@ export function ExpenseList({
   error = null,
   preferredCurrency = 'THB',
   showDividers = true,
-  emptyMessage = "No expenses found"
+  emptyMessage = "No expenses found",
+  onExpenseUpdated,
+  onExpenseDeleted
 }: ExpenseListProps) {
   
   if (loading) {
@@ -86,6 +90,8 @@ export function ExpenseList({
                 expense={expense}
                 preferredCurrency={preferredCurrency}
                 showDate={!showDividers}
+                onExpenseUpdated={onExpenseUpdated}
+                onExpenseDeleted={onExpenseDeleted}
               />
             ))}
           </div>

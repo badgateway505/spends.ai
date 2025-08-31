@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useCurrencySettings } from '../../../currency/hooks/useCurrencySettings';
 import type { NewExpenseForm } from '../../types/expense.types';
 
 export interface FormError {
@@ -14,11 +15,21 @@ interface ExpenseFormProps {
 }
 
 export function ExpenseForm({ onSubmit, loading = false, className = '', onError }: ExpenseFormProps) {
+  const { defaultCurrency } = useCurrencySettings();
+  
   const [formData, setFormData] = useState<NewExpenseForm>({
     item: '',
     amount: '',
-    currency: 'THB',
+    currency: defaultCurrency,
   });
+
+  // Update currency when default currency changes
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      currency: defaultCurrency
+    }));
+  }, [defaultCurrency]);
 
   const [errors, setErrors] = useState<Partial<Record<keyof NewExpenseForm, string>>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);

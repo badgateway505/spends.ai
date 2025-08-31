@@ -1,3 +1,5 @@
+import type { GroupIcon, GroupColor } from '../../categories/types/category.types';
+
 // Expense types based on database schema
 export interface Expense {
   id: string;
@@ -19,6 +21,8 @@ export interface ExpenseWithConversions extends Expense {
   amount_thb: number;
   amount_usd: number;
   group_name: string | null;
+  group_icon: GroupIcon | null;
+  group_color: GroupColor | null;
   tag_name: string | null;
   thb_per_usd: number;
   usd_per_thb: number;

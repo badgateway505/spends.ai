@@ -1,12 +1,14 @@
 import { supabase } from '../../lib/supabase';
-import { isDevelopment } from '../../utils/env';
 import type { PostgrestError } from '@supabase/supabase-js';
+import type { GroupIcon, GroupColor } from '../types/category.types';
 
 export interface Group {
   id: string;
   user_id: string;
   name: string;
   description?: string;
+  icon?: GroupIcon;
+  color?: GroupColor;
   archived: boolean;
   archived_at?: string;
   created_at: string;
@@ -16,6 +18,8 @@ export interface Group {
 export interface CreateGroupRequest {
   name: string;
   description?: string;
+  icon?: GroupIcon;
+  color?: GroupColor;
 }
 
 export type GroupErrorCode = 
@@ -62,38 +66,54 @@ export class GroupServiceError extends Error {
 }
 
 // Default expense groups that are created for new users
-export const DEFAULT_GROUPS: Omit<CreateGroupRequest, 'user_id'>[] = [
+export const DEFAULT_GROUPS: CreateGroupRequest[] = [
   {
     name: 'Food & Dining',
-    description: 'Restaurants, cafes, groceries, and food delivery'
+    description: 'Restaurants, cafes, groceries, and food delivery',
+    icon: 'utensils',
+    color: 'emerald'
   },
   {
     name: 'Transportation',
-    description: 'Taxi, Grab, public transport, fuel, and parking'
+    description: 'Taxi, Grab, public transport, fuel, and parking',
+    icon: 'car',
+    color: 'blue'
   },
   {
     name: 'Shopping',
-    description: 'Clothes, electronics, books, and general purchases'
+    description: 'Clothes, electronics, books, and general purchases',
+    icon: 'shopping-bag',
+    color: 'purple'
   },
   {
     name: 'Bills & Utilities',
-    description: 'Electricity, water, internet, phone, and rent'
+    description: 'Electricity, water, internet, phone, and rent',
+    icon: 'receipt',
+    color: 'orange'
   },
   {
     name: 'Entertainment',
-    description: 'Movies, concerts, games, and recreational activities'
+    description: 'Movies, concerts, games, and recreational activities',
+    icon: 'film',
+    color: 'pink'
   },
   {
     name: 'Health & Fitness',
-    description: 'Healthcare, gym, sports, and wellness'
+    description: 'Healthcare, gym, sports, and wellness',
+    icon: 'heart',
+    color: 'red'
   },
   {
     name: 'Education',
-    description: 'Courses, books, training, and educational materials'
+    description: 'Courses, books, training, and educational materials',
+    icon: 'book-open',
+    color: 'indigo'
   },
   {
     name: 'Travel',
-    description: 'Hotels, flights, and travel-related expenses'
+    description: 'Hotels, flights, and travel-related expenses',
+    icon: 'plane',
+    color: 'cyan'
   }
 ];
 
@@ -105,21 +125,12 @@ class GroupServiceClass {
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
       
-      if (error && !isDevelopment) {
+      if (error) {
         throw new GroupServiceError('AUTH_ERROR', 'Authentication failed');
       }
       
       if (user) {
         return user.id;
-      }
-      
-      // Development mock user fallback
-      if (isDevelopment) {
-        const mockUserData = localStorage.getItem('mock-debug-user');
-        if (mockUserData) {
-          const mockUser = JSON.parse(mockUserData);
-          return mockUser.id;
-        }
       }
       
       throw new GroupServiceError('AUTH_ERROR', 'User not authenticated');
@@ -155,22 +166,7 @@ class GroupServiceClass {
     try {
       const userId = await this.getCurrentUserId();
       
-      // For development with mock user, return mock groups
-      if (isDevelopment && userId === 'debug-user-id-12345') {
-        await new Promise(resolve => setTimeout(resolve, 400));
-        
-        const mockGroups: Group[] = DEFAULT_GROUPS.map((group, index) => ({
-          id: `mock-group-${index + 1}`,
-          user_id: userId,
-          name: group.name,
-          description: group.description || '',
-          archived: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }));
-        
-        return mockGroups;
-      }
+
 
       let query = supabase
         .from('groups')
@@ -219,17 +215,21 @@ class GroupServiceClass {
         user_id: userId,
         name: groupData.name.trim(),
         description: groupData.description?.trim() || null,
+        icon: groupData.icon || 'tag',
+        color: groupData.color || 'gray',
       };
 
-      // For development with mock user
-      if (isDevelopment && userId === 'debug-user-id-12345') {
+      // Skip mock user logic in production
+      if (false) {
         await new Promise(resolve => setTimeout(resolve, 600));
         
         const mockGroup: Group = {
-          id: `mock-group-${Date.now()}`,
+          id: `group-${Date.now()}`,
           user_id: userId,
           name: createData.name,
           description: createData.description || '',
+          icon: createData.icon,
+          color: createData.color,
           archived: false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -267,8 +267,8 @@ class GroupServiceClass {
       console.log('Creating default groups...');
       const userId = await this.getCurrentUserId();
 
-      // For development with mock user, create groups directly
-      if (isDevelopment && userId === 'debug-user-id-12345') {
+      // Skip mock user logic in production
+      if (false) {
         const createdGroups: Group[] = [];
 
         for (const groupData of DEFAULT_GROUPS) {
