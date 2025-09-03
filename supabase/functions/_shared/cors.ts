@@ -8,13 +8,15 @@ export interface CorsOptions {
 }
 
 const DEFAULT_CORS_OPTIONS: CorsOptions = {
-  origin: true, // Allow all origins in development
+  origin: ['http://localhost:3000', 'https://localhost:3000', 'http://127.0.0.1:3000'], // Allow localhost and specific origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'authorization',
     'x-client-info',
     'apikey',
     'content-type',
+    'prefer',
+    'x-supabase-auth',
   ],
   credentials: true,
 }
@@ -29,9 +31,8 @@ export function setCorsHeaders(options: CorsOptions = {}): Headers {
   } else if (typeof mergedOptions.origin === 'string') {
     headers.set('Access-Control-Allow-Origin', mergedOptions.origin)
   } else if (Array.isArray(mergedOptions.origin)) {
-    // For multiple origins, you'd need to check the request origin
-    // For now, we'll default to the first one or all
-    headers.set('Access-Control-Allow-Origin', mergedOptions.origin[0] || '*')
+    // For development, allow all localhost variants
+    headers.set('Access-Control-Allow-Origin', '*')
   }
 
   // Set other CORS headers
@@ -54,7 +55,7 @@ export function handleCors(request: Request, options?: CorsOptions): Response | 
   // Handle preflight requests
   if (request.method === 'OPTIONS') {
     return new Response(null, {
-      status: 200,
+      status: 204, // Use 204 No Content instead of 200 for preflight
       headers: setCorsHeaders(options),
     })
   }

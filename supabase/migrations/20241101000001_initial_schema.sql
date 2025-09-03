@@ -31,10 +31,7 @@ create table public.groups (
   archived boolean not null default false,
   archived_at timestamptz,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  
-  -- Unique name per user (case-insensitive)
-  unique(user_id, lower(name))
+  updated_at timestamptz not null default now()
 );
 
 -- Expense tags table
@@ -44,10 +41,7 @@ create table public.tags (
   name text not null,
   description text,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  
-  -- Unique name per user (case-insensitive)
-  unique(user_id, lower(name))
+  updated_at timestamptz not null default now()
 );
 
 -- Main expenses/spends table
@@ -90,6 +84,10 @@ create index idx_groups_user_id on public.groups(user_id);
 create index idx_tags_user_id on public.tags(user_id);
 create index idx_model_runs_user_id on public.model_runs(user_id);
 create index idx_model_runs_created_at on public.model_runs(created_at desc);
+
+-- Create unique indexes for case-insensitive unique names per user
+create unique index idx_groups_user_name_unique on public.groups(user_id, lower(name));
+create unique index idx_tags_user_name_unique on public.tags(user_id, lower(name));
 
 -- Create functions for automatic timestamp updates
 create or replace function public.handle_updated_at()

@@ -7,7 +7,7 @@ import { ExpenseReviewCard } from '../expenses/components/capture/ExpenseReviewC
 import { ToastContainer } from '../ui/components/feedback/Toast';
 import { useToast } from '../ui/hooks/useToast';
 import { expenseService } from '../expenses/services/expenseService';
-import type { NewExpenseForm } from '../expenses/types/expense.types';
+import type { NewExpenseForm, ExpenseWithConversions } from '../expenses/types/expense.types';
 import type { ClassificationResult } from '../expenses/services/classificationService';
 import { useAuth } from '../auth/hooks/useAuth';
 import { VoiceOverlay } from '../voice/components/VoiceOverlay';
@@ -66,7 +66,7 @@ export function Dashboard() {
     loading: todayLoading, 
     error: todayError,
     refresh: refreshToday,
-    addExpenseOptimistically,
+    addOptimisticExpense,
     removeOptimisticExpense,
     updateExpense,
     deleteExpense
@@ -90,48 +90,105 @@ export function Dashboard() {
   };
 
   const handleExpenseFormSubmit = async (expense: NewExpenseForm) => {
+    console.log('🎯 [Dashboard] Received expense form submission');
+    console.log('📝 [Dashboard] Expense data:', expense);
+    
     setIsClassifying(true);
     setFormError(null);
     setPendingExpenseData(expense);
     
     try {
+      console.log('🤖 [Dashboard] Starting AI classification...');
       // Try AI classification first
       const { classificationService } = await import('../expenses/services/classificationService');
       const classificationText = `${expense.item}${expense.merchant ? ` at ${expense.merchant}` : ''} ${expense.amount} ${expense.currency}`;
+      console.log('📤 [Dashboard] Classification text:', classificationText);
       
       const classification = await classificationService.classifyExpense(classificationText);
+      console.log('✅ [Dashboard] AI classification successful:', classification);
+      
       setClassificationResult(classification);
       setExpenseFlowStep('review');
+      console.log('🔄 [Dashboard] Switched to review step');
       
     } catch (error: any) {
-      console.warn('AI classification failed, proceeding without review:', error);
+      console.warn('⚠️ [Dashboard] AI classification failed, proceeding without review:', error);
+      console.warn('⚠️ [Dashboard] Error details:', {
+        message: error.message,
+        code: error.code,
+        type: error.constructor.name
+      });
       
       // If classification fails, proceed directly to saving
+      console.log('⏭️ [Dashboard] Proceeding directly to expense creation...');
       await handleFinalExpenseSubmit(expense);
     } finally {
       setIsClassifying(false);
+      console.log('🔄 [Dashboard] Classification state reset');
     }
   };
 
   const handleFinalExpenseSubmit = async (finalExpenseData: NewExpenseForm) => {
+    console.log('💾 [Dashboard] Starting final expense submission');
+    console.log('📊 [Dashboard] Final expense data:', finalExpenseData);
+    
     setIsSubmitting(true);
     
+    // Create a temporary expense object for optimistic update
+    const tempId = `temp-${Date.now()}`;
+    const amount = parseFloat(finalExpenseData.amount) * 100; // Convert to cents
+    console.log('🔢 [Dashboard] Amount conversion:', { 
+      original: finalExpenseData.amount, 
+      converted: amount 
+    });
+    
+    const optimisticExpense: ExpenseWithConversions = {
+      id: tempId,
+      user_id: user?.id || '',
+      item: finalExpenseData.item,
+      amount,
+      currency: finalExpenseData.currency,
+      merchant: finalExpenseData.merchant || null,
+      group_id: finalExpenseData.group_id || null,
+      tag_id: finalExpenseData.tag_id || null,
+      created_at: new Date().toISOString(),
+      user_local_datetime: new Date().toISOString(),
+      fx_rate_date: new Date().toISOString().split('T')[0],
+      archived: false,
+      archived_at: null,
+      amount_thb: finalExpenseData.currency === 'THB' ? amount : amount * 35, // Rough conversion for display
+      amount_usd: finalExpenseData.currency === 'USD' ? amount : amount / 35, // Rough conversion for display
+      group_name: null,
+      group_icon: null,
+      group_color: null,
+      tag_name: null,
+      thb_per_usd: 35,
+      usd_per_thb: 1/35,
+    };
+    
+    console.log('⚡ [Dashboard] Created optimistic expense:', optimisticExpense);
+    
     // Add expense optimistically for immediate UI update
-    const tempId = addExpenseOptimistically(finalExpenseData);
+    addOptimisticExpense(optimisticExpense);
+    console.log('✅ [Dashboard] Added optimistic expense to UI');
     
     try {
+      console.log('🚀 [Dashboard] Calling expense service...');
       // Submit expense using the basic service (AI already applied)
       const newExpense = await expenseService.createExpense(finalExpenseData);
-      console.log('Expense created successfully:', newExpense);
+      console.log('✅ [Dashboard] Expense created successfully:', newExpense);
       
+      console.log('🧹 [Dashboard] Cleaning up optimistic expense...');
       // Remove the optimistic expense and refresh to get the real one
       removeOptimisticExpense(tempId);
       refreshToday();
+      console.log('🔄 [Dashboard] Refreshed expense list');
       
       // Reset flow
       setExpenseFlowStep('none');
       setPendingExpenseData(null);
       setClassificationResult(null);
+      console.log('🔄 [Dashboard] Reset expense flow state');
       
       // Show success toast with AI classification info
       let successMessage = `${newExpense.item} - ${newExpense.currency} ${(newExpense.amount / 100).toFixed(2)}`;
@@ -140,13 +197,21 @@ export function Dashboard() {
         successMessage += ` (${classificationResult.group.name})`;
       }
       
+      console.log('🎉 [Dashboard] Showing success toast:', successMessage);
+      
       toast.success(
         classificationResult ? 'Expense Added with AI!' : 'Expense Added!',
         successMessage
       );
       
     } catch (error: any) {
-      console.error('Failed to submit expense:', error);
+      console.error('❌ [Dashboard] Failed to submit expense:', error);
+      console.error('❌ [Dashboard] Error details:', {
+        message: error.message,
+        code: error.code,
+        type: error.constructor.name,
+        stack: error.stack
+      });
       
       // Remove the failed optimistic expense
       removeOptimisticExpense(tempId);
@@ -550,8 +615,8 @@ export function Dashboard() {
       
       {/* Debug panel in development */}
       {import.meta.env.DEV && (
-        <div className="fixed bottom-4 left-4 z-40 bg-gray-900 text-white text-xs p-3 rounded-lg shadow-lg opacity-90 max-w-sm">
-          <div className="font-semibold mb-1">Debug Info</div>
+        <div className="fixed bottom-4 left-4 z-40 bg-gray-900 text-white text-xs p-3 rounded-lg shadow-lg opacity-90 max-w-sm cursor-pointer select-all">
+          <div className="font-semibold mb-1">Debug Info 📋</div>
           <div>User: {user?.email || 'Not authenticated'}</div>
           <div>User ID: {user?.id?.substring(0, 8) || 'N/A'}...</div>
           <div>Expenses: {todayExpenses.length}</div>
@@ -560,11 +625,45 @@ export function Dashboard() {
           <div>Classifying: {isClassifying ? '🧠' : '✅'}</div>
           <div>Submitting: {isSubmitting ? '⏳' : '✅'}</div>
           <div>Has Classification: {classificationResult ? '🤖' : '❌'}</div>
+          <div>Analytics Loading: {analyticsLoading ? '🔄' : '✅'}</div>
+          
+          {/* Comprehensive Error Information */}
           {todayError && (
-            <div className="text-red-400 mt-1">
-              Error: {String(todayError).substring(0, 40)}...
+            <div className="border-t border-gray-700 mt-2 pt-2">
+              <div className="text-red-400 font-semibold">🚨 TODAY EXPENSES ERROR:</div>
+              <div className="text-red-300 mt-1 break-all">{String(todayError)}</div>
             </div>
           )}
+          
+          {/* Classification Result Details */}
+          {classificationResult && (
+            <div className="border-t border-gray-700 mt-2 pt-2">
+              <div className="text-green-400 font-semibold">🤖 CLASSIFICATION:</div>
+              <div className="text-green-300">Group: {classificationResult.group?.name || 'None'}</div>
+              <div className="text-green-300">Confidence: {Math.round((classificationResult.confidence || 0) * 100)}%</div>
+            </div>
+          )}
+          
+          {/* Pending Data */}
+          {pendingExpenseData && (
+            <div className="border-t border-gray-700 mt-2 pt-2">
+              <div className="text-yellow-400 font-semibold">⏳ PENDING DATA:</div>
+              <div className="text-yellow-300">{pendingExpenseData.item}</div>
+              <div className="text-yellow-300">{pendingExpenseData.amount} {pendingExpenseData.currency}</div>
+            </div>
+          )}
+          
+          {/* Analytics Error */}
+          {analyticsSummary === null && !analyticsLoading && (
+            <div className="border-t border-gray-700 mt-2 pt-2">
+              <div className="text-orange-400 font-semibold">⚠️ ANALYTICS:</div>
+              <div className="text-orange-300">No data available</div>
+            </div>
+          )}
+          
+          <div className="border-t border-gray-700 mt-2 pt-2 text-gray-400 text-center">
+            Click to select all for copying
+          </div>
         </div>
       )}
     </div>

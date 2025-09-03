@@ -57,6 +57,69 @@ class ExpenseServiceClass {
   }
 
   /**
+   * Ensure FX rate exists for the given date
+   */
+  private async ensureFxRateExists(rateDate: string): Promise<void> {
+    try {
+      console.log('🔍 [ExpenseService] Checking if fx_rate exists for date:', rateDate);
+      
+      // Check if fx_rate exists for this date
+      const { data: existingRate, error: checkError } = await supabase
+        .from('fx_rates')
+        .select('rate_date')
+        .eq('rate_date', rateDate)
+        .maybeSingle(); // Use maybeSingle() instead of single() to avoid errors when no data
+
+      if (checkError) {
+        console.error('❌ [ExpenseService] Error checking fx_rate:', checkError);
+        throw new ExpenseServiceError('DATABASE_ERROR', 'Failed to check exchange rate');
+      }
+
+      // If rate doesn't exist, create a default one
+      if (!existingRate) {
+        console.log('⚠️ [ExpenseService] FX rate not found, creating default for date:', rateDate);
+        
+        // Use reasonable default rates (approximate current rates)
+        const defaultRates = {
+          rate_date: rateDate,
+          usd_per_thb: 0.027, // 1 THB = 0.027 USD
+          thb_per_usd: 37.0,  // 1 USD = 37 THB
+          manual: true,
+          fetched_at: new Date().toISOString(),
+        };
+
+        console.log('💱 [ExpenseService] Default rates to insert:', defaultRates);
+
+        const { error: insertError } = await supabase
+          .from('fx_rates')
+          .insert(defaultRates)
+          .select()
+          .single();
+
+        if (insertError) {
+          // Check if this is a duplicate key error (rate already exists)
+          if (insertError.code === '23505') {
+            console.log('✅ [ExpenseService] FX rate already exists (race condition handled)');
+            return;
+          }
+          console.error('❌ [ExpenseService] Error creating default fx_rate:', insertError);
+          throw new ExpenseServiceError('DATABASE_ERROR', 'Failed to create exchange rate');
+        }
+
+        console.log('✅ [ExpenseService] Created default fx_rate for', rateDate);
+      } else {
+        console.log('✅ [ExpenseService] FX rate already exists for date:', rateDate);
+      }
+    } catch (error) {
+      if (error instanceof ExpenseServiceError) {
+        throw error;
+      }
+      console.error('Unexpected error ensuring fx_rate exists:', error);
+      throw new ExpenseServiceError('DATABASE_ERROR', 'Failed to ensure exchange rate exists');
+    }
+  }
+
+  /**
    * Handle Supabase errors and convert to ExpenseServiceError
    */
   private handleSupabaseError(error: PostgrestError, operation: string): ExpenseServiceError {
@@ -68,6 +131,10 @@ class ExpenseServiceClass {
     }
     
     if (error.code === '23503') {
+      // Check if this is specifically about fx_rates
+      if (error.message?.includes('fx_rates') || error.message?.includes('spends_fx_rate_date_fkey')) {
+        return new ExpenseServiceError('DATABASE_ERROR', 'Exchange rate not available for this date. Please try again.', error);
+      }
       return new ExpenseServiceError('REFERENCE_ERROR', 'Referenced item not found', error);
     }
     
@@ -175,24 +242,40 @@ class ExpenseServiceClass {
    */
   async createExpense(formData: NewExpenseForm): Promise<ExpenseRow> {
     try {
-      console.log('Creating expense with data:', formData);
+      console.log('🏗️ [ExpenseService] Starting expense creation');
+      console.log('📝 [ExpenseService] Input data:', formData);
       
       // Get current user
+      console.log('👤 [ExpenseService] Getting current user...');
       const userId = await this.getCurrentUserId();
-      console.log('Creating expense for user:', userId);
+      console.log('✅ [ExpenseService] User ID retrieved:', userId);
 
       // Convert form data to database format
+      console.log('🔢 [ExpenseService] Converting amount...');
       const amountFloat = parseFloat(formData.amount);
+      console.log('🔢 [ExpenseService] Amount parsing:', { input: formData.amount, parsed: amountFloat });
+      
       if (isNaN(amountFloat) || amountFloat <= 0) {
+        console.error('❌ [ExpenseService] Invalid amount detected');
         throw new ExpenseServiceError('VALIDATION_ERROR', 'Invalid amount');
       }
 
       // Convert amount to integer (cents/satang) for storage
       const amountInteger = Math.round(amountFloat * 100);
+      console.log('💰 [ExpenseService] Amount conversion complete:', { 
+        float: amountFloat, 
+        integer: amountInteger 
+      });
 
       // Get current FX rate date (today)
       const today = new Date();
       const fxRateDate = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+      console.log('📅 [ExpenseService] FX rate date:', fxRateDate);
+
+      // Ensure fx_rate exists for today - if not, create a default one
+      console.log('💱 [ExpenseService] Ensuring FX rate exists...');
+      await this.ensureFxRateExists(fxRateDate);
+      console.log('✅ [ExpenseService] FX rate check completed');
 
       const expenseData = {
         user_id: userId,
@@ -207,7 +290,7 @@ class ExpenseServiceClass {
         archived: false,
       };
 
-      console.log('Inserting expense data:', expenseData);
+      console.log('📤 [ExpenseService] Final expense data prepared:', expenseData);
 
       // Skip mock user logic in production
       if (false) {
@@ -227,6 +310,7 @@ class ExpenseServiceClass {
       }
 
       // Insert expense into database
+      console.log('🗄️ [ExpenseService] Inserting into database...');
       const { data, error } = await supabase
         .from('spends')
         .insert(expenseData)
@@ -234,10 +318,41 @@ class ExpenseServiceClass {
         .single();
 
       if (error) {
+        console.error('❌ [ExpenseService] Database insertion failed:', error);
+        
+        // If this is an fx_rate constraint error, try to create the rate again and retry
+        if (error.code === '23503' && (error.message?.includes('fx_rates') || error.message?.includes('spends_fx_rate_date_fkey'))) {
+          console.log('🔄 [ExpenseService] Retrying with fx_rate creation...');
+          
+          try {
+            await this.ensureFxRateExists(fxRateDate);
+            
+            // Retry the insert
+            const { data: retryData, error: retryError } = await supabase
+              .from('spends')
+              .insert(expenseData)
+              .select()
+              .single();
+              
+            if (retryError) {
+              console.error('❌ [ExpenseService] Retry also failed:', retryError);
+              throw this.handleSupabaseError(retryError, 'create expense');
+            }
+            
+            console.log('✅ [ExpenseService] Retry successful:', retryData);
+            return retryData;
+            
+          } catch (retryError) {
+            console.error('❌ [ExpenseService] Retry failed:', retryError);
+            throw this.handleSupabaseError(error, 'create expense');
+          }
+        }
+        
         throw this.handleSupabaseError(error, 'create expense');
       }
 
-      console.log('Expense created successfully:', data);
+      console.log('✅ [ExpenseService] Expense created successfully:', data);
+      console.log('🎉 [ExpenseService] Expense creation process completed');
       return data;
 
     } catch (error) {

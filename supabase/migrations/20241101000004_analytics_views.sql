@@ -1,6 +1,11 @@
 -- Analytics views and functions
 -- This migration creates views and functions for efficient analytics queries
 
+-- Drop existing views first (in reverse dependency order)
+DROP VIEW IF EXISTS public.group_spending_summary;
+DROP VIEW IF EXISTS public.daily_spending_summary;
+DROP VIEW IF EXISTS public.spends_with_conversions;
+
 -- Create view for spends with converted amounts
 create or replace view public.spends_with_conversions as
 select 
@@ -25,7 +30,7 @@ left join public.groups g on s.group_id = g.id
 left join public.tags t on s.tag_id = t.id
 left join public.fx_rates fx on s.fx_rate_date = fx.rate_date;
 
--- Daily spending summary view
+-- Daily spending summary view (FIXED)
 create or replace view public.daily_spending_summary as
 select 
   user_id,
@@ -33,11 +38,11 @@ select
   currency,
   count(*) as transaction_count,
   sum(amount) as total_amount,
-  sum(case when currency = 'THB' then amount else round(amount * fx.thb_per_usd) end) as total_thb,
-  sum(case when currency = 'USD' then amount else round(amount * fx.usd_per_thb) end) as total_usd
+  sum(amount_thb) as total_thb,
+  sum(amount_usd) as total_usd
 from public.spends_with_conversions
 where not archived
-group by user_id, date(user_local_datetime), currency, thb_per_usd, usd_per_thb;
+group by user_id, date(user_local_datetime), currency;
 
 -- Group spending summary view
 create or replace view public.group_spending_summary as

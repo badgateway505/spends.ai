@@ -83,24 +83,32 @@ class ClassificationServiceClass {
    */
   async classifyExpense(text: string, userTimezone = 'UTC'): Promise<ClassificationResult> {
     try {
-      console.log('Classifying expense:', text);
+      console.log('🤖 [ClassificationService] Starting AI classification');
+      console.log('📝 [ClassificationService] Input text:', text);
+      console.log('🌍 [ClassificationService] User timezone:', userTimezone);
 
 
 
       // Get current session
+      console.log('🔐 [ClassificationService] Getting auth session...');
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
+        console.error('❌ [ClassificationService] No active session');
         throw new ClassificationServiceError('AUTH_ERROR', 'User not authenticated');
       }
       
       const accessToken = session.access_token;
       
       if (!accessToken) {
+        console.error('❌ [ClassificationService] No access token in session');
         throw new ClassificationServiceError('AUTH_ERROR', 'Authentication required for AI classification');
       }
 
+      console.log('✅ [ClassificationService] Auth token obtained');
+
       // Call the classify Edge Function
+      console.log('🚀 [ClassificationService] Calling Edge Function...');
       const { data, error } = await supabase.functions.invoke('classify', {
         body: {
           text,
@@ -110,9 +118,16 @@ class ClassificationServiceClass {
           Authorization: `Bearer ${accessToken}`,
         },
       });
+      
+      console.log('📨 [ClassificationService] Edge Function response received');
 
       if (error) {
-        console.error('Edge Function error:', error);
+        console.error('❌ [ClassificationService] Edge Function error:', error);
+        console.error('❌ [ClassificationService] Error details:', {
+          message: error.message,
+          context: error.context,
+          details: error.details
+        });
         throw new ClassificationServiceError(
           'API_ERROR',
           `Classification service error: ${error.message}`,
@@ -121,13 +136,14 @@ class ClassificationServiceClass {
       }
 
       if (!data || !data.success) {
+        console.error('❌ [ClassificationService] Invalid response from service:', data);
         throw new ClassificationServiceError(
           'API_ERROR',
           'Invalid response from classification service'
         );
       }
 
-      console.log('Classification result:', data.data);
+      console.log('✅ [ClassificationService] Classification successful:', data.data);
       return data.data;
 
     } catch (error) {

@@ -37,11 +37,22 @@ create trigger on_auth_user_created
 -- Function to get current user's settings
 create or replace function public.get_user_settings()
 returns public.user_settings as $$
+declare
+  user_settings_record public.user_settings;
 begin
-  return (
-    select * from public.user_settings 
-    where user_id = auth.uid()
-  );
+  -- Try to get existing settings
+  select * into user_settings_record 
+  from public.user_settings 
+  where user_id = auth.uid();
+  
+  -- If no settings exist, create default ones
+  if user_settings_record.user_id is null then
+    insert into public.user_settings (user_id, main_currency, include_archived_analytics)
+    values (auth.uid(), 'THB', false)
+    returning * into user_settings_record;
+  end if;
+  
+  return user_settings_record;
 end;
 $$ language plpgsql security definer;
 

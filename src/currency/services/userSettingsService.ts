@@ -6,19 +6,43 @@ export class UserSettingsService {
    * Get current user's settings
    */
   static async getUserSettings(): Promise<UserSettings> {
-    const { data, error } = await supabase
-      .rpc('get_user_settings');
+    try {
+      const { data, error } = await supabase
+        .rpc('get_user_settings');
 
-    if (error) {
-      console.error('Error fetching user settings:', error);
+      if (error) {
+        console.error('Error fetching user settings via RPC:', error);
+        
+        // Fallback: try direct table query
+        console.log('Trying direct table query as fallback...');
+        const { data: directData, error: directError } = await supabase
+          .from('user_settings')
+          .select('*')
+          .single();
+
+        if (directError) {
+          if (directError.code === 'PGRST116') {
+            // No settings found, create default ones
+            console.log('No user settings found, creating default...');
+            return await this.initializeUserSettings();
+          }
+          console.error('Error with direct query:', directError);
+          throw new Error('Failed to fetch user settings');
+        }
+
+        return directData;
+      }
+
+      if (!data) {
+        console.log('No user settings returned, creating default...');
+        return await this.initializeUserSettings();
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Unexpected error in getUserSettings:', error);
       throw new Error('Failed to fetch user settings');
     }
-
-    if (!data) {
-      throw new Error('No user settings found');
-    }
-
-    return data;
   }
 
   /**
